@@ -1633,16 +1633,14 @@ function stopListening() {
 
 function speakText(text) {
   if (!window.speechSynthesis) {
-    showToast('⚠️ 你的浏览器不支持发音，请用Chrome或Edge');
+    showToast('⚠️ 浏览器不支持发音，请用Chrome');
     return;
   }
   const cleanText = text.replace(/[🎉👏💪✨🌟👍💡🎤🔥]/g, '').trim();
   if (!cleanText) return;
   const u = new SpeechSynthesisUtterance(cleanText);
-  u.lang = 'en-US';
   u.rate = state.settings.speechRate || 0.9;
   u.volume = 1;
-  u.onerror = () => {}; // suppress errors
   speechSynthesis.cancel();
   setTimeout(() => speechSynthesis.speak(u), 150);
 }
@@ -1650,10 +1648,8 @@ function speakText(text) {
 function speakWord(word) {
   if (!window.speechSynthesis) return;
   const u = new SpeechSynthesisUtterance(word);
-  u.lang = 'en-US';
   u.rate = 0.8;
   u.volume = 1;
-  u.onerror = () => {};
   speechSynthesis.cancel();
   setTimeout(() => speechSynthesis.speak(u), 150);
 }
