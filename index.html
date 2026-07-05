@@ -1626,37 +1626,41 @@ function speakText(text) {
     showToast('⚠️ 你的浏览器不支持发音功能，请用Chrome或Edge');
     return;
   }
-  // Chrome autoplay policy: resume if suspended
-  if (speechSynthesis.speaking) speechSynthesis.cancel();
   const cleanText = text.replace(/[🎉👏💪✨🌟👍💡🎤🔥]/g, '').trim();
   if (!cleanText) return;
-  const utterance = new SpeechSynthesisUtterance(cleanText);
-  utterance.lang = 'en-US';
-  utterance.rate = state.settings.speechRate || 0.9;
-  utterance.pitch = 1;
-  utterance.volume = 1;
-  const voices = speechSynthesis.getVoices();
-  const enVoice = voices.find(v => v.lang.startsWith('en-US') && v.name.includes('Female'))
-    || voices.find(v => v.lang.startsWith('en-US'))
-    || voices.find(v => v.lang.startsWith('en'));
-  if (enVoice) utterance.voice = enVoice;
-  // Resume if suspended (Chrome autoplay fix)
-  if (speechSynthesis.paused) speechSynthesis.resume();
-  speechSynthesis.speak(utterance);
+  // Chrome TTS bug workaround: cancel + small delay before speak
+  speechSynthesis.cancel();
+  speechSynthesis.resume();
+  setTimeout(() => {
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.lang = 'en-US';
+    utterance.rate = state.settings.speechRate || 0.9;
+    utterance.pitch = 1;
+    utterance.volume = 1;
+    const voices = speechSynthesis.getVoices();
+    const enVoice = voices.find(v => v.lang.startsWith('en-US') && v.name.includes('Female'))
+      || voices.find(v => v.lang.startsWith('en-US'))
+      || voices.find(v => v.lang.startsWith('en'));
+    if (enVoice) utterance.voice = enVoice;
+    speechSynthesis.speak(utterance);
+  }, 80);
 }
 
 function speakWord(word) {
   if (!window.speechSynthesis) return;
-  if (speechSynthesis.speaking) speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(word);
-  utterance.lang = 'en-US';
-  utterance.rate = 0.8;
-  utterance.volume = 1;
-  const voices = speechSynthesis.getVoices();
-  const enVoice = voices.find(v => v.lang.startsWith('en-US'));
-  if (enVoice) utterance.voice = enVoice;
-  if (speechSynthesis.paused) speechSynthesis.resume();
-  speechSynthesis.speak(utterance);
+  // Chrome TTS bug workaround
+  speechSynthesis.cancel();
+  speechSynthesis.resume();
+  setTimeout(() => {
+    const utterance = new SpeechSynthesisUtterance(word);
+    utterance.lang = 'en-US';
+    utterance.rate = 0.8;
+    utterance.volume = 1;
+    const voices = speechSynthesis.getVoices();
+    const enVoice = voices.find(v => v.lang.startsWith('en-US'));
+    if (enVoice) utterance.voice = enVoice;
+    speechSynthesis.speak(utterance);
+  }, 80);
 }
 
 // Pre-load voices
