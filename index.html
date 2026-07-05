@@ -1014,6 +1014,7 @@ function renderDashboard() {
     <p>👋 <b>欢迎来到 EnglishQuest！我是你的英语老师，陪你从零到流利。</b></p>
     <p style="margin-top:6px;">🎤 <b>发音功能：</b>点击任何单词旁的 🔊 按钮听发音；在对话中点 🎤 麦克风说话（需允许浏览器使用麦克风）</p>
     <p style="margin-top:4px;">💡 用 <b>Chrome</b> 或 <b>Edge</b> 浏览器体验最佳。先做定位测试，或零基础直接从第1阶段开始！</p>
+    ${state.placementDone ? `<p style="margin-top:8px;"><a href="javascript:void(0)" onclick="resetPlacement()" style="color:var(--danger);text-decoration:underline;">🔄 重新进行定位测试</a></p>` : ''}
   </div>`;
 
   main.innerHTML = html;
@@ -1022,6 +1023,15 @@ function renderDashboard() {
 // ═══════════════════════════════════════
 //  PLACEMENT TEST
 // ═══════════════════════════════════════
+
+function resetPlacement() {
+  state.placementDone = false;
+  state.currentStage = 0;
+  state.stageProgress = {};
+  saveState();
+  showToast('✅ 定位测试已重置！');
+  renderDashboard();
+}
 
 function startPlacement() {
   const quiz = CONTENT[0].quiz;
@@ -1142,12 +1152,12 @@ function openFlashcards(stageId, lessonIdx, lesson) {
       <div id="fc-word" style="margin-top:8px;display:none;">${lesson.items[0].back}</div>
     </div>
     <div class="flashcard-nav">
-      <button class="btn" style="background:var(--surface2);" id="fc-prev" onclick="fcNav(-1)">◀ Prev</button>
-      <button class="btn btn-primary" onclick="speakWord('${lesson.items[0].word}')">🔊 Listen</button>
-      <button class="btn" style="background:var(--surface2);" id="fc-next" onclick="fcNav(1)">Next ▶</button>
+      <button class="btn" style="background:var(--surface2);" id="fc-prev" onclick="fcNav(-1)">◀ 上一个</button>
+      <button class="btn btn-primary" onclick="speakWord('${lesson.items[0].word}')">🔊 听发音</button>
+      <button class="btn" style="background:var(--surface2);" id="fc-next" onclick="fcNav(1)">下一个 ▶</button>
     </div>
     <div style="text-align:center;margin-top:12px;">
-      <button class="btn btn-accent" onclick="markLessonDone(${stageId}, ${lessonIdx})">✓ I've Learned These</button>
+      <button class="btn btn-accent" onclick="markLessonDone(${stageId}, ${lessonIdx})">✓ 我已学会这些</button>
     </div>
   `;
   updateFcButtons();
@@ -1232,9 +1242,9 @@ function openConversation(stageId, lessonIdx, lesson) {
     </div>
     <div class="chat-area" id="chat-area"></div>
     <div class="chat-input-wrap">
-      <input class="chat-input" id="chat-input" placeholder="Type your response..." onkeydown="if(event.key==='Enter')sendMessage()">
+      <input class="chat-input" id="chat-input" placeholder="输入你的回答..." onkeydown="if(event.key==='Enter')sendMessage()">
       <button class="btn-mic" id="mic-btn" onclick="toggleMic()" title="Hold to speak">🎤</button>
-      <button class="btn btn-primary" onclick="sendMessage()">Send</button>
+      <button class="btn btn-primary" onclick="sendMessage()">发送</button>
     </div>
   `;
   // Show first teacher message
@@ -1291,7 +1301,7 @@ function analyzeResponse(text, stageId) {
   if (stageId <= 3) {
     // Early stages: just encourage
     if (lower.length > 2) {
-      result.praise = '🌟 Good try! Keep practicing!';
+      result.praise = '🌟 不错的尝试！继续加油！';
     }
   }
 
@@ -1389,8 +1399,8 @@ function openQuiz(stageId) {
           : `你需要 ${quiz.passScore}% 才能通过。复习课程后再试！`}</p>
         ${passed ? `<p style="color:var(--gold);margin-top:8px;">+30 经验到手！</p>` : ''}
         <div style="margin-top:16px;display:flex;gap:10px;justify-content:center;">
-          ${!passed ? `<button class="btn btn-primary" onclick="openQuiz(${stageId})">Retry Quiz 🔄</button>` : ''}
-          <button class="btn btn-accent" onclick="openStage(${stageId})">Back to Stage</button>
+          ${!passed ? `<button class="btn btn-primary" onclick="openQuiz(${stageId})">重新测验 🔄</button>` : ''}
+          <button class="btn btn-accent" onclick="openStage(${stageId})">返回阶段</button>
         </div>
       </div>
     `;
@@ -1468,7 +1478,7 @@ function renderReview() {
         <h2>All caught up!</h2>
         <p style="color:var(--text-dim);margin-top:8px;">Complete more lessons to add words for review.</p>
         <p style="color:var(--text-dim);">Total words learned: <b style="color:var(--primary-glow)">${state.vocabulary.length}</b></p>
-        <button class="btn btn-primary" style="margin-top:16px;" onclick="renderDashboard()">Learn More →</button>
+        <button class="btn btn-primary" style="margin-top:16px;" onclick="renderDashboard()">去学习 →</button>
       </div>
     `;
     return;
@@ -1489,12 +1499,12 @@ function renderReview() {
       <div class="review-card">
         <div class="review-word" id="review-word">${w.word}</div>
         <div class="review-answer" id="review-answer" style="display:none;">${w.trans}</div>
-        <button class="btn" style="background:var(--surface2);margin-top:8px;" onclick="document.getElementById('review-answer').style.display='block';this.style.display='none';speakWord('${w.word}')">Show Answer / 🔊</button>
+        <button class="btn" style="background:var(--surface2);margin-top:8px;" onclick="document.getElementById('review-answer').style.display='block';this.style.display='none';speakWord('${w.word}')">显示答案 / 🔊</button>
         <div class="review-btns" style="margin-top:12px;">
-          <button class="review-btn again" onclick="reviewCard(${rIdx}, 'again')">Again 😰</button>
-          <button class="review-btn hard" onclick="reviewCard(${rIdx}, 'hard')">Hard 🤔</button>
-          <button class="review-btn good" onclick="reviewCard(${rIdx}, 'good')">Good 😊</button>
-          <button class="review-btn easy" onclick="reviewCard(${rIdx}, 'easy')">Easy 🚀</button>
+          <button class="review-btn again" onclick="reviewCard(${rIdx}, 'again')">忘记 😰</button>
+          <button class="review-btn hard" onclick="reviewCard(${rIdx}, 'hard')">困难 🤔</button>
+          <button class="review-btn good" onclick="reviewCard(${rIdx}, 'good')">不错 😊</button>
+          <button class="review-btn easy" onclick="reviewCard(${rIdx}, 'easy')">简单 🚀</button>
         </div>
       </div>
     `;
@@ -1663,10 +1673,22 @@ function speakWord(word) {
   }, 80);
 }
 
-// Pre-load voices
+// Pre-load voices + Chrome TTS warmup on first click
 if (window.speechSynthesis) {
   speechSynthesis.getVoices();
   speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices();
+  // Chrome needs a user gesture to unlock TTS
+  let ttsUnlocked = false;
+  document.addEventListener('click', () => {
+    if (!ttsUnlocked && window.speechSynthesis) {
+      speechSynthesis.cancel();
+      speechSynthesis.resume();
+      const u = new SpeechSynthesisUtterance('');
+      u.volume = 0;
+      speechSynthesis.speak(u);
+      ttsUnlocked = true;
+    }
+  }, {once: false});
 }
 
 // ═══════════════════════════════════════
