@@ -385,20 +385,20 @@ const STAGES = [
 
 const CONTENT = {
 
-  // ── STAGE 0: 定位测试 ──
+  // ── STAGE 0: 定位测试（纯知识题，0=零基础→第1阶段，8=全会→第8阶段）──
   0: {
     quiz: {
       title: '定位测试',
-      passScore: 0,
+      passScore: -1, // special: no pass/fail, just placement
       questions: [
-        { q:'你能读出英文字母表吗？', opts:['全部都会','大部分会','只会几个','完全不会'], ans:0, weight:[0,1,2,3] },
-        { q:'"Hello" 是什么意思？', opts:['再见','你好','谢谢','对不起'], ans:1, weight:[0,1,2,2] },
-        { q:'你会用英语说 "我叫..." 吗？', opts:['很流利','可以但不流利','不太确定','完全不会'], ans:0, weight:[0,1,2,3] },
-        { q:'"How are you?" 是什么意思？', opts:['你几岁','你好吗','你住哪','你叫什么'], ans:1, weight:[0,0,1,3] },
-        { q:'你能用英语点餐吗？', opts:['很流利','勉强可以','只会几个词','完全不会'], ans:0, weight:[0,1,2,3] },
-        { q:'"I went to the store" — 发生在什么时候？', opts:['现在','将来','过去','没发生'], ans:2, weight:[0,1,2,3] },
-        { q:'你能用英语进行5分钟对话吗？', opts:['很流利','有些停顿','只会简单句','完全不能'], ans:0, weight:[0,1,2,3] },
-        { q:'你学英语的目标是什么？', opts:['基础词汇','简单对话','日常场景','完全流利'], ans:0, weight:[3,2,1,0] },
+        { q:'字母 "A" 怎么读？', opts:['/biː/','/siː/','/eɪ/','/aɪ/'], ans:2 },
+        { q:'"Hello" 是什么意思？', opts:['再见','你好','谢谢','对不起'], ans:1 },
+        { q:'"cat" 的中文意思是？', opts:['狗','猫','鱼','鸟'], ans:1 },
+        { q:'"I am a student" 意思是？', opts:['我是老师','我是学生','我是医生','我是厨师'], ans:1 },
+        { q:'别人说 "How are you?" 你应该回答？', opts:['I\'m from China','I\'m fine, thank you','My name is Tom','I\'m 20 years old'], ans:1 },
+        { q:'你想去厕所，应该问？', opts:['What is this?','Where is the toilet?','Who are you?','How much?'], ans:1 },
+        { q:'"I went to school yesterday" 这句是什么时态？', opts:['现在时','将来时','过去时','进行时'], ans:2 },
+        { q:'"Although it rained, I still went out" 你看得懂吗？', opts:['完全不懂','大概懂一点','基本能懂','完全能懂'], ans:3 },
       ]
     }
   },
@@ -1010,9 +1010,10 @@ function renderDashboard() {
   html += `</div>`;
 
   // Info panel
-  html += `<div style="margin-top:20px;background:var(--surface);border-radius:var(--radius);padding:16px;font-size:.82em;color:var(--text-dim);text-align:center;">
-    <p>💡 <b>提示：</b> 做定位测试找到你的起始级别，或者零基础直接从第1阶段开始！</p>
-    <p style="margin-top:4px;">🎤 推荐用 <b>Chrome</b> 或 <b>Edge</b> 浏览器，可以使用语音识别（会话中点 🎤 麦克风）</p>
+  html += `<div style="margin-top:20px;background:var(--surface);border-radius:var(--radius);padding:16px;font-size:.82em;color:var(--text-dim);text-align:center;line-height:1.7;">
+    <p>👋 <b>欢迎来到 EnglishQuest！我是你的英语老师，陪你从零到流利。</b></p>
+    <p style="margin-top:6px;">🎤 <b>发音功能：</b>点击任何单词旁的 🔊 按钮听发音；在对话中点 🎤 麦克风说话（需允许浏览器使用麦克风）</p>
+    <p style="margin-top:4px;">💡 用 <b>Chrome</b> 或 <b>Edge</b> 浏览器体验最佳。先做定位测试，或零基础直接从第1阶段开始！</p>
   </div>`;
 
   main.innerHTML = html;
@@ -1034,15 +1035,15 @@ function startPlacement() {
     </div>
     <div id="placement-container"></div>
   `;
-  runQuiz(0, quiz, (score, totalWeight) => {
-    const pct = Math.round((score / totalWeight) * 100);
-    let assignedStage = 1;
-    if (pct >= 85) assignedStage = 8;
-    else if (pct >= 70) assignedStage = 7;
-    else if (pct >= 50) assignedStage = 5;
-    else if (pct >= 35) assignedStage = 4;
-    else if (pct >= 20) assignedStage = 3;
-    else if (pct >= 10) assignedStage = 2;
+  runQuiz(0, quiz, (score) => {
+    // Score = number of correct answers (0-8)
+    // Map directly: 0→Stage1, 1→Stage2, ... 8→Stage8 (but cap at 8)
+    let assignedStage = Math.min(8, score + 1);
+    // Q8 is self-assessment: "完全不懂"=ans3 but should not add to knowledge score
+    // Adjust: if they got Q8 right (ans=3 "完全能懂"), add bonus; otherwise no penalty
+    // Simple fix: map score 0-7 to stage 1-8, 8 points → stage 8
+    const stageMap = [1, 2, 2, 3, 4, 5, 6, 7, 8]; // 0→1, 1-2→2, 3→3, 4→4, 5→5, 6→6, 7→7, 8→8
+    assignedStage = stageMap[Math.min(score, 8)];
 
     state.placementDone = true;
     state.currentStage = assignedStage;
@@ -1050,13 +1051,14 @@ function startPlacement() {
     saveState();
 
     const main = document.getElementById('main-content');
+    const pct = Math.round((score / 8) * 100);
     main.innerHTML = `
       <div class="quiz-card">
-        <span style="font-size:3em;display:block;margin-bottom:8px;">${pct >= 50 ? '🎉' : '💪'}</span>
+        <span style="font-size:3em;display:block;margin-bottom:8px;">${score <= 1 ? '🌱' : score <= 4 ? '💪' : '🎉'}</span>
         <h2>评估完成！</h2>
-        <p style="font-size:1.2em;margin:12px 0;">你的得分 <b>${pct}%</b></p>
+        <p style="font-size:1.2em;margin:12px 0;">你答对了 <b>${score}/8</b> 题</p>
         <p>建议起始级别：<b style="color:var(--primary-glow);font-size:1.1em;">第${assignedStage}阶段：${STAGES[assignedStage].name}</b></p>
-        <p style="color:var(--text-dim);font-size:.85em;margin-top:8px;">随时可回到前面的阶段复习。</p>
+        <p style="color:var(--text-dim);font-size:.85em;margin-top:8px;">答对0-1题从发音开始，8题全会直接流利对话</p>
         <button class="btn btn-primary" style="margin-top:16px;" onclick="renderDashboard()">出发！🚀</button>
       </div>
     `;
@@ -1561,7 +1563,10 @@ let isListening = false;
 function initSpeech() {
   if (recognition) return true;
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SpeechRecognition) return false;
+  if (!SpeechRecognition) {
+    showToast('⚠️ 浏览器不支持语音识别，请使用Chrome或Edge浏览器');
+    return false;
+  }
   recognition = new SpeechRecognition();
   recognition.lang = 'en-US';
   recognition.interimResults = false;
@@ -1574,12 +1579,21 @@ function initSpeech() {
       input.focus();
     }
     stopListening();
-    // Auto-send if in conversation
+    showToast('✅ 识别成功！');
     if (currentView === 'stage' && document.getElementById('chat-area')) {
-      setTimeout(() => sendMessage(), 300);
+      setTimeout(() => sendMessage(), 500);
     }
   };
-  recognition.onerror = () => stopListening();
+  recognition.onerror = (event) => {
+    stopListening();
+    if (event.error === 'not-allowed') {
+      showToast('⚠️ 麦克风权限未开启，请在浏览器设置中允许麦克风访问');
+    } else if (event.error === 'no-speech') {
+      showToast('⚠️ 没有检测到语音，请再试一次');
+    } else {
+      showToast('⚠️ 语音识别出错：' + event.error);
+    }
+  };
   recognition.onend = () => stopListening();
   return true;
 }
@@ -1608,30 +1622,40 @@ function stopListening() {
 }
 
 function speakText(text) {
-  if (!window.speechSynthesis) return;
-  // Clean text for speech
-  const cleanText = text.replace(/[🎉👏💪✨🌟👍💡🎤]/g, '').trim();
+  if (!window.speechSynthesis) {
+    showToast('⚠️ 你的浏览器不支持发音功能，请用Chrome或Edge');
+    return;
+  }
+  // Chrome autoplay policy: resume if suspended
+  if (speechSynthesis.speaking) speechSynthesis.cancel();
+  const cleanText = text.replace(/[🎉👏💪✨🌟👍💡🎤🔥]/g, '').trim();
+  if (!cleanText) return;
   const utterance = new SpeechSynthesisUtterance(cleanText);
   utterance.lang = 'en-US';
-  utterance.rate = state.settings.speechRate;
+  utterance.rate = state.settings.speechRate || 0.9;
   utterance.pitch = 1;
-  // Try to find a good English voice
+  utterance.volume = 1;
   const voices = speechSynthesis.getVoices();
-  const enVoice = voices.find(v => v.lang.startsWith('en') && v.name.includes('Female'))
+  const enVoice = voices.find(v => v.lang.startsWith('en-US') && v.name.includes('Female'))
     || voices.find(v => v.lang.startsWith('en-US'))
     || voices.find(v => v.lang.startsWith('en'));
   if (enVoice) utterance.voice = enVoice;
+  // Resume if suspended (Chrome autoplay fix)
+  if (speechSynthesis.paused) speechSynthesis.resume();
   speechSynthesis.speak(utterance);
 }
 
 function speakWord(word) {
   if (!window.speechSynthesis) return;
+  if (speechSynthesis.speaking) speechSynthesis.cancel();
   const utterance = new SpeechSynthesisUtterance(word);
   utterance.lang = 'en-US';
   utterance.rate = 0.8;
+  utterance.volume = 1;
   const voices = speechSynthesis.getVoices();
   const enVoice = voices.find(v => v.lang.startsWith('en-US'));
   if (enVoice) utterance.voice = enVoice;
+  if (speechSynthesis.paused) speechSynthesis.resume();
   speechSynthesis.speak(utterance);
 }
 
