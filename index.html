@@ -1,0 +1,1653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>EnglishQuest — Learn English Through Adventure</title>
+<style>
+:root {
+  --bg: #0f0f1a;
+  --surface: #1a1a2e;
+  --surface2: #222240;
+  --primary: #6c5ce7;
+  --primary-glow: #a29bfe;
+  --accent: #00cec9;
+  --gold: #fdcb6e;
+  --danger: #e17055;
+  --success: #00b894;
+  --text: #e0e0e0;
+  --text-dim: #999;
+  --border: #2d2d50;
+  --radius: 14px;
+  --shadow: 0 4px 24px rgba(0,0,0,.3);
+  --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+* { box-sizing:border-box; margin:0; padding:0; }
+body {
+  font-family:var(--font); background:var(--bg); color:var(--text);
+  min-height:100dvh; overflow-x:hidden;
+  background-image: radial-gradient(ellipse at 50% 0%, #1a1a3e 0%, var(--bg) 70%);
+}
+/* ── HEADER ── */
+.header {
+  background:var(--surface); border-bottom:1px solid var(--border);
+  padding:10px 16px; display:flex; align-items:center; gap:12px;
+  position:sticky; top:0; z-index:100; backdrop-filter:blur(10px);
+}
+.header .logo { font-size:1.3em; font-weight:800; }
+.header .logo .eq { color:var(--primary-glow); }
+.stats { display:flex; gap:12px; margin-left:auto; align-items:center; font-size:.85em; }
+.stat { display:flex; align-items:center; gap:4px; }
+.stat .icon { font-size:1.1em; }
+.streak .icon { color:var(--danger); }
+.xp .icon { color:var(--gold); }
+.level-badge {
+  background:linear-gradient(135deg, var(--primary), var(--accent));
+  color:#fff; border-radius:20px; padding:3px 12px; font-weight:700; font-size:.8em;
+}
+/* ── MAIN ── */
+.main {
+  max-width:800px; margin:0 auto; padding:16px;
+  min-height:calc(100dvh - 140px);
+}
+/* ── DASHBOARD ── */
+.stage-grid { display:flex; flex-direction:column; gap:12px; }
+.stage-card {
+  background:var(--surface); border-radius:var(--radius); padding:16px;
+  display:flex; align-items:center; gap:14px; cursor:pointer;
+  border:2px solid var(--border); transition:all .2s;
+  position:relative; overflow:hidden;
+}
+.stage-card:hover { border-color:var(--primary); transform:translateY(-2px); box-shadow:var(--shadow); }
+.stage-card.locked { opacity:.5; cursor:not-allowed; filter:grayscale(.5); }
+.stage-card.locked:hover { border-color:var(--border); transform:none; box-shadow:none; }
+.stage-card.completed { border-color:var(--success); }
+.stage-card.current { border-color:var(--primary); box-shadow:0 0 20px rgba(108,92,231,.25); }
+.stage-icon {
+  width:50px; height:50px; border-radius:12px; display:flex;
+  align-items:center; justify-content:center; font-size:1.6em;
+  flex-shrink:0;
+}
+.stage-info { flex:1; min-width:0; }
+.stage-info h3 { font-size:1em; margin-bottom:2px; }
+.stage-info p { font-size:.78em; color:var(--text-dim); }
+.stage-status {
+  font-size:.75em; padding:4px 10px; border-radius:12px; font-weight:600;
+}
+.stage-status.locked-badge { background:#333; color:#888; }
+.stage-status.current-badge { background:rgba(108,92,231,.2); color:var(--primary-glow); }
+.stage-status.done-badge { background:rgba(0,184,148,.15); color:var(--success); }
+/* ── XP BAR ── */
+.xp-bar-wrap { margin:16px 0; background:var(--surface); border-radius:var(--radius); padding:12px 16px; }
+.xp-bar-label { display:flex; justify-content:space-between; font-size:.8em; margin-bottom:6px; }
+.xp-bar { height:8px; background:var(--surface2); border-radius:4px; overflow:hidden; }
+.xp-bar-fill { height:100%; background:linear-gradient(90deg, var(--primary), var(--accent)); border-radius:4px; transition:width .5s ease; }
+/* ── LESSON VIEW ── */
+.lesson-header { display:flex; align-items:center; gap:12px; margin-bottom:20px; }
+.back-btn {
+  background:var(--surface2); border:none; color:var(--text); width:36px; height:36px;
+  border-radius:50%; cursor:pointer; font-size:1.2em; display:flex; align-items:center; justify-content:center;
+}
+.back-btn:hover { background:var(--primary); }
+.lesson-title { font-size:1.1em; }
+.lesson-progress { font-size:.75em; color:var(--text-dim); margin-left:auto; }
+/* ── CONVERSATION ── */
+.chat-area {
+  background:var(--surface); border-radius:var(--radius); padding:16px;
+  min-height:350px; max-height:55vh; overflow-y:auto; margin-bottom:12px;
+  display:flex; flex-direction:column; gap:10px;
+}
+.chat-msg {
+  max-width:85%; padding:10px 14px; border-radius:16px; font-size:.92em; line-height:1.5;
+  animation:fadeInUp .3s ease;
+}
+@keyframes fadeInUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+.chat-msg.teacher { background:var(--surface2); align-self:flex-start; border-bottom-left-radius:4px; }
+.chat-msg.student { background:var(--primary); align-self:flex-end; border-bottom-right-radius:4px; }
+.chat-msg.correction { background:rgba(225,112,85,.15); align-self:flex-start; border-left:3px solid var(--danger); font-size:.82em; }
+.chat-msg.praise { background:rgba(0,184,148,.15); align-self:flex-start; border-left:3px solid var(--success); font-size:.82em; }
+.chat-input-wrap { display:flex; gap:8px; }
+.chat-input {
+  flex:1; background:var(--surface2); border:1px solid var(--border); border-radius:24px;
+  padding:10px 18px; color:var(--text); font-size:.9em; outline:none; font-family:var(--font);
+}
+.chat-input:focus { border-color:var(--primary); }
+.btn {
+  border:none; border-radius:24px; padding:10px 20px; font-size:.85em; font-weight:600;
+  cursor:pointer; transition:all .2s; font-family:var(--font);
+}
+.btn:hover { transform:translateY(-1px); }
+.btn-primary { background:var(--primary); color:#fff; }
+.btn-accent { background:var(--accent); color:#111; }
+.btn-mic {
+  width:40px; height:40px; border-radius:50%; background:var(--surface2); border:1px solid var(--border);
+  color:var(--text); font-size:1.1em; cursor:pointer; display:flex; align-items:center; justify-content:center;
+}
+.btn-mic.listening { background:var(--danger); animation:pulse 1s infinite; border-color:var(--danger); }
+@keyframes pulse { 0%,100% { box-shadow:0 0 0 0 rgba(225,112,85,.4); } 50% { box-shadow:0 0 0 12px rgba(225,112,85,0); } }
+/* ── QUIZ ── */
+.quiz-card {
+  background:var(--surface); border-radius:var(--radius); padding:20px; text-align:center;
+}
+.quiz-question { font-size:1.3em; margin-bottom:20px; }
+.quiz-options { display:grid; gap:10px; }
+.quiz-option {
+  background:var(--surface2); border:2px solid var(--border); border-radius:var(--radius);
+  padding:14px; cursor:pointer; font-size:.95em; transition:all .15s; text-align:left;
+}
+.quiz-option:hover { border-color:var(--primary); }
+.quiz-option.selected { border-color:var(--primary); background:rgba(108,92,231,.15); }
+.quiz-option.correct { border-color:var(--success); background:rgba(0,184,148,.15); }
+.quiz-option.wrong { border-color:var(--danger); background:rgba(225,112,85,.15); }
+/* ── FLASHCARD ── */
+.flashcard {
+  background:var(--surface); border-radius:var(--radius); padding:30px; text-align:center;
+  cursor:pointer; min-height:180px; display:flex; align-items:center; justify-content:center;
+  font-size:1.8em; transition:transform .4s; perspective:600px;
+  border:2px solid var(--border); user-select:none;
+}
+.flashcard.flipped { border-color:var(--accent); }
+.flashcard .emoji { font-size:2em; display:block; }
+.flashcard .word { font-size:1.2em; margin-top:8px; }
+.flashcard .trans { font-size:.6em; color:var(--text-dim); margin-top:4px; }
+.flashcard-nav { display:flex; gap:12px; justify-content:center; margin-top:12px; }
+/* ── MODAL ── */
+.modal-overlay {
+  position:fixed; inset:0; background:rgba(0,0,0,.75); z-index:200;
+  display:flex; align-items:center; justify-content:center; padding:20px;
+}
+.modal {
+  background:var(--surface); border-radius:var(--radius); padding:24px;
+  max-width:440px; width:100%; text-align:center; animation:popIn .3s ease;
+}
+@keyframes popIn { from { transform:scale(.9); opacity:0; } to { transform:scale(1); opacity:1; } }
+.modal h2 { font-size:1.4em; margin-bottom:8px; }
+.modal .emoji-big { font-size:3em; display:block; margin-bottom:12px; }
+.modal-stats { display:flex; gap:16px; justify-content:center; margin:16px 0; font-size:.85em; }
+.modal-stat { text-align:center; }
+.modal-stat .val { font-size:1.4em; font-weight:700; color:var(--gold); }
+/* select */
+.modern-select {
+  background:var(--surface2); border:1px solid var(--border); border-radius:24px;
+  padding:8px 16px; color:var(--text); font-size:.85em; cursor:pointer; font-family:var(--font);
+}
+/* ── BADGES ── */
+.badges-row { display:flex; gap:8px; flex-wrap:wrap; margin:8px 0; }
+.badge-item {
+  font-size:1.4em; opacity:.3; transition:all .3s;
+}
+.badge-item.unlocked { opacity:1; animation:badgePop .5s ease; }
+@keyframes badgePop { 0% { transform:scale(0); } 50% { transform:scale(1.3); } 100% { transform:scale(1); } }
+/* ── REVIEW ── */
+.review-card {
+  background:var(--surface); border-radius:var(--radius); padding:20px; text-align:center;
+  min-height:140px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px;
+}
+.review-word { font-size:2em; }
+.review-answer { font-size:1em; color:var(--text-dim); }
+.review-btns { display:flex; gap:8px; margin-top:8px; }
+.review-btn {
+  padding:8px 16px; border-radius:20px; border:none; cursor:pointer; font-weight:600;
+  font-size:.82em; transition:all .15s;
+}
+.review-btn.again { background:rgba(225,112,85,.2); color:var(--danger); }
+.review-btn.hard { background:rgba(253,203,110,.2); color:var(--gold); }
+.review-btn.good { background:rgba(0,206,201,.2); color:var(--accent); }
+.review-btn.easy { background:rgba(0,184,148,.2); color:var(--success); }
+/* ── TOAST ── */
+.toast {
+  position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+  background:var(--surface2); padding:12px 24px; border-radius:24px;
+  font-size:.85em; z-index:300; animation:slideUp .3s ease;
+  border:1px solid var(--border); white-space:nowrap;
+}
+@keyframes slideUp { from { transform:translate(-50%, 20px); opacity:0; } to { transform:translate(-50%, 0); opacity:1; } }
+/* ── MOBILE ── */
+@media (max-width:500px) {
+  .header { padding:8px 12px; }
+  .header .logo { font-size:1.1em; }
+  .stats { gap:6px; font-size:.75em; }
+  .stage-card { padding:12px; gap:10px; }
+  .stage-icon { width:40px; height:40px; font-size:1.3em; }
+  .chat-area { min-height:250px; max-height:45vh; }
+  .flashcard { min-height:140px; font-size:1.4em; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="logo"><span class="eq">📚</span> English<span style="color:var(--accent)">Quest</span></div>
+  <nav id="nav-tabs" style="display:flex;gap:4px;margin-left:12px;"></nav>
+  <div class="stats">
+    <div class="stat streak"><span class="icon">🔥</span><span id="streak-days">0</span>d</div>
+    <div class="stat xp"><span class="icon">⭐</span><span id="total-xp">0</span></div>
+    <div class="level-badge" id="level-badge">Lv.1</div>
+  </div>
+</header>
+
+<!-- MAIN -->
+<main class="main" id="main-content"></main>
+
+<script>
+// ═══════════════════════════════════════
+//  ENGLISH QUEST — Core System
+// ═══════════════════════════════════════
+
+// ── State ──
+const DEFAULT_STATE = {
+  level: 1, xp: 0, xpToNext: 100,
+  streak: 0, lastActive: null,
+  currentStage: 0, // 0=placement, 1-7 stages
+  stageProgress: {}, // { stageId: { lessonsDone:[], quizPassed:false, score:0 } }
+  vocabulary: [], // { word, trans, stage, ease, nextReview, reviews }
+  badges: [],
+  settings: { speechRate: 0.9, voiceURI: null, autoSpeak: true },
+  placementDone: false,
+};
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem('englishquest');
+    if (raw) return { ...DEFAULT_STATE, ...JSON.parse(raw) };
+  } catch(e) {}
+  return { ...DEFAULT_STATE };
+}
+
+function saveState() {
+  localStorage.setItem('englishquest', JSON.stringify(state));
+}
+
+let state = loadState();
+
+// Streak check
+const today = new Date().toISOString().split('T')[0];
+if (state.lastActive !== today) {
+  const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+  if (state.lastActive === yesterday) {
+    state.streak++;
+  } else if (state.lastActive !== null) {
+    state.streak = 0;
+  }
+  state.streak = state.streak || 1;
+  state.lastActive = today;
+  saveState();
+}
+
+// ── XP System ──
+function addXP(amount) {
+  state.xp += amount;
+  while (state.xp >= state.xpToNext) {
+    state.xp -= state.xpToNext;
+    state.level++;
+    state.xpToNext = Math.floor(state.xpToNext * 1.4);
+    showToast(`🎉 升级了！你现在是等级 ${state.level}！`);
+    checkBadges();
+  }
+  saveState();
+  updateHeader();
+}
+
+function checkBadges() {
+  const checks = [
+    { id: 'first_lesson', name: '迈出第一步', icon: '👶', cond: () => Object.keys(state.stageProgress).length > 0 },
+    { id: 'streak3', name: '连续3天', icon: '🔥', cond: () => state.streak >= 3 },
+    { id: 'streak7', name: '周勇士', icon: '💪', cond: () => state.streak >= 7 },
+    { id: 'level5', name: '冉冉新星', icon: '⭐', cond: () => state.level >= 5 },
+    { id: 'level10', name: '学者', icon: '🎓', cond: () => state.level >= 10 },
+    { id: 'stage3', name: '短语大师', icon: '💬', cond: () => state.stageProgress[4]?.quizPassed },
+    { id: 'stage5', name: '探索者', icon: '🌍', cond: () => state.stageProgress[7]?.quizPassed },
+    { id: 'stage8', name: '流利说', icon: '🏆', cond: () => state.stageProgress[8]?.quizPassed },
+    { id: 'vocab50', name: '单词收集者', icon: '📖', cond: () => state.vocabulary.length >= 50 },
+    { id: 'perfect', name: '满分达人', icon: '💯', cond: () => Object.values(state.stageProgress).some(s => s.score === 100) },
+  ];
+  for (const b of checks) {
+    if (!state.badges.includes(b.id) && b.cond()) {
+      state.badges.push(b.id);
+      showModal('badge', b);
+    }
+  }
+  saveState();
+}
+
+// ── UI Helpers ──
+function showToast(msg) {
+  const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity .3s'; }, 2000);
+  setTimeout(() => t.remove(), 2500);
+}
+
+function showModal(type, data) {
+  const overlay = document.createElement('div'); overlay.className = 'modal-overlay';
+  let html = '';
+  if (type === 'badge') {
+    html = `<div class="modal"><span class="emoji-big">${data.icon}</span><h2>成就解锁！</h2><p style="color:var(--gold);font-size:1.1em;">${data.name}</p><button class="btn btn-primary" style="margin-top:16px;" onclick="this.closest('.modal-overlay').remove()">太棒了！</button></div>`;
+  } else if (type === 'levelup') {
+    html = `<div class="modal"><span class="emoji-big">🎉</span><h2>阶段完成！</h2><p>${data.msg}</p><div class="modal-stats"><div class="modal-stat"><div class="val">${data.score}%</div><div>得分</div></div><div class="modal-stat"><div class="val">+${data.xp}</div><div>获得经验</div></div></div><button class="btn btn-primary" style="margin-top:12px;" onclick="this.closest('.modal-overlay').remove();renderDashboard();">继续</button></div>`;
+  } else if (type === 'placement') {
+    html = `<div class="modal"><span class="emoji-big">${data.emoji||'📋'}</span><h2>${data.title}</h2><p>${data.msg}</p><button class="btn btn-primary" style="margin-top:16px;" onclick="this.closest('.modal-overlay').remove();startPlacement();">开始评估</button></div>`;
+  }
+  overlay.innerHTML = html;
+  document.body.appendChild(overlay);
+}
+
+function updateHeader() {
+  document.getElementById('streak-days').textContent = state.streak;
+  document.getElementById('total-xp').textContent = state.xp;
+  document.getElementById('level-badge').textContent = `Lv.${state.level}`;
+}
+
+// ── Navigation ──
+let currentView = 'dashboard';
+
+function renderNav() {
+  const tabs = [
+    { id: 'dashboard', label: '🏠 首页' },
+    { id: 'review', label: '🔄 复习' },
+    { id: 'badges-view', label: '🏅 成就' },
+  ];
+  const nav = document.getElementById('nav-tabs');
+  nav.innerHTML = tabs.map(t =>
+    `<button class="btn" style="padding:6px 12px;font-size:.78em;background:${currentView===t.id?'var(--primary)':'var(--surface2)'};" onclick="switchView('${t.id}')">${t.label}</button>`
+  ).join('');
+}
+
+function switchView(view) {
+  currentView = view;
+  renderNav();
+  if (view === 'dashboard') renderDashboard();
+  else if (view === 'review') renderReview();
+  else if (view === 'badges-view') renderBadges();
+}
+
+// ═══════════════════════════════════════
+//  STAGE DEFINITIONS
+// ═══════════════════════════════════════
+
+const STAGES = [
+  { id: 0, name: '定位测试', icon: '🎯', color: '#6c5ce7', desc: '找到你的起始级别' },
+  { id: 1, name: '发音基础', icon: '🔤', color: '#00b894', desc: '字母、音标、重音、连读' },
+  { id: 2, name: '核心词汇300', icon: '📖', color: '#00cec9', desc: '最高频300词，建立基础词汇库' },
+  { id: 3, name: '基础语法', icon: '📐', color: '#fdcb6e', desc: 'be动词、一般现在时、简单问句' },
+  { id: 4, name: '高频句型', icon: '💬', color: '#e17055', desc: '50个高频句型直接表达' },
+  { id: 5, name: '听力训练', icon: '🎧', color: '#a29bfe', desc: '单词听写、短句理解——训练耳朵' },
+  { id: 6, name: '跟读与口语', icon: '🗣', color: '#fd79a8', desc: '慢速跟读、常速跟读、自我介绍' },
+  { id: 7, name: '场景实战', icon: '🌍', color: '#ffeaa7', desc: '餐厅、购物、问路、电话、看病' },
+  { id: 8, name: '流利对话', icon: '🏆', color: '#ff7675', desc: '表达观点、讲述经历、辩论' },
+];
+
+
+// ═══════════════════════════════════════
+//  STAGE CONTENT — 按学习路线图：发音→词汇→语法→句型→听力→跟读→场景→流利
+// ═══════════════════════════════════════
+
+const CONTENT = {
+
+  // ── STAGE 0: 定位测试 ──
+  0: {
+    quiz: {
+      title: '定位测试',
+      passScore: 0,
+      questions: [
+        { q:'你能读出英文字母表吗？', opts:['全部都会','大部分会','只会几个','完全不会'], ans:0, weight:[0,1,2,3] },
+        { q:'"Hello" 是什么意思？', opts:['再见','你好','谢谢','对不起'], ans:1, weight:[0,1,2,2] },
+        { q:'你会用英语说 "我叫..." 吗？', opts:['很流利','可以但不流利','不太确定','完全不会'], ans:0, weight:[0,1,2,3] },
+        { q:'"How are you?" 是什么意思？', opts:['你几岁','你好吗','你住哪','你叫什么'], ans:1, weight:[0,0,1,3] },
+        { q:'你能用英语点餐吗？', opts:['很流利','勉强可以','只会几个词','完全不会'], ans:0, weight:[0,1,2,3] },
+        { q:'"I went to the store" — 发生在什么时候？', opts:['现在','将来','过去','没发生'], ans:2, weight:[0,1,2,3] },
+        { q:'你能用英语进行5分钟对话吗？', opts:['很流利','有些停顿','只会简单句','完全不能'], ans:0, weight:[0,1,2,3] },
+        { q:'你学英语的目标是什么？', opts:['基础词汇','简单对话','日常场景','完全流利'], ans:0, weight:[3,2,1,0] },
+      ]
+    }
+  },
+
+  // ── STAGE 1: 发音基础 ──
+  1: {
+    lessons: [
+      { type:'flashcards', title:'26个英文字母', items: [
+        { front:'A a /eɪ/', back:'apple 苹果 🍎', word:'apple' },
+        { front:'B b /biː/', back:'book 书 📚', word:'book' },
+        { front:'C c /siː/', back:'cat 猫 🐱', word:'cat' },
+        { front:'D d /diː/', back:'dog 狗 🐶', word:'dog' },
+        { front:'E e /iː/', back:'egg 鸡蛋 🥚', word:'egg' },
+        { front:'F f /ef/', back:'fish 鱼 🐟', word:'fish' },
+        { front:'G g /dʒiː/', back:'girl 女孩 👧', word:'girl' },
+        { front:'H h /eɪtʃ/', back:'house 房子 🏠', word:'house' },
+        { front:'I i /aɪ/', back:'ice 冰 🧊', word:'ice' },
+        { front:'J j /dʒeɪ/', back:'juice 果汁 🧃', word:'juice' },
+        { front:'K k /keɪ/', back:'king 国王 👑', word:'king' },
+        { front:'L l /el/', back:'lion 狮子 🦁', word:'lion' },
+        { front:'M m /em/', back:'milk 牛奶 🥛', word:'milk' },
+        { front:'N n /en/', back:'nose 鼻子 👃', word:'nose' },
+        { front:'O o /oʊ/', back:'orange 橙子 🍊', word:'orange' },
+        { front:'P p /piː/', back:'pen 笔 🖊️', word:'pen' },
+        { front:'Q q /kjuː/', back:'queen 女王 👸', word:'queen' },
+        { front:'R r /ɑːr/', back:'rain 雨 🌧️', word:'rain' },
+        { front:'S s /es/', back:'sun 太阳 ☀️', word:'sun' },
+        { front:'T t /tiː/', back:'tree 树 🌳', word:'tree' },
+        { front:'U u /juː/', back:'umbrella 雨伞 ☂️', word:'umbrella' },
+        { front:'V v /viː/', back:'van 面包车 🚐', word:'van' },
+        { front:'W w /ˈdʌbəl.juː/', back:'water 水 💧', word:'water' },
+        { front:'X x /eks/', back:'box 盒子 📦', word:'box' },
+        { front:'Y y /waɪ/', back:'yellow 黄色 💛', word:'yellow' },
+        { front:'Z z /ziː/', back:'zebra 斑马 🦓', word:'zebra' },
+      ]},
+      { type:'flashcards', title:'元音音标 (Vowels)', items: [
+        { front:'/iː/ see 👀', back:'长音"衣" — see, eat, me', word:'see' },
+        { front:'/ɪ/ sit 🪑', back:'短音"衣" — sit, big, fish', word:'sit' },
+        { front:'/e/ bed 🛏️', back:'短音"诶" — bed, red, pen', word:'bed' },
+        { front:'/æ/ cat 🐱', back:'大嘴"哎" — cat, apple, bad', word:'cat' },
+        { front:'/ʌ/ cup ☕', back:'短音"啊" — cup, sun, bus', word:'cup' },
+        { front:'/ɑː/ car 🚗', back:'长音"啊" — car, far, star', word:'car' },
+        { front:'/ɒ/ hot 🔥', back:'短音"哦" — hot, dog, box', word:'hot' },
+        { front:'/ɔː/ door 🚪', back:'长音"哦" — door, four, walk', word:'door' },
+        { front:'/ʊ/ book 📖', back:'短音"呜" — book, good, look', word:'book' },
+        { front:'/uː/ food 🍔', back:'长音"呜" — food, school, two', word:'food' },
+        { front:'/ɜː/ bird 🐦', back:'长音"呃" — bird, work, learn', word:'bird' },
+        { front:'/ə/ about', back:'轻声"呃" — about, banana, today', word:'about' },
+      ]},
+      { type:'flashcards', title:'双元音 (Diphthongs)', items: [
+        { front:'/eɪ/ day ☀️', back:'day, make, name, say', word:'day' },
+        { front:'/aɪ/ my 👤', back:'my, like, time, five', word:'my' },
+        { front:'/ɔɪ/ boy 👦', back:'boy, toy, voice, noise', word:'boy' },
+        { front:'/aʊ/ now 🕐', back:'now, how, down, house', word:'now' },
+        { front:'/əʊ/ go 🚶', back:'go, no, home, phone', word:'go' },
+        { front:'/ɪə/ ear 👂', back:'ear, near, here, dear', word:'ear' },
+        { front:'/eə/ air 💨', back:'air, where, there, chair', word:'air' },
+        { front:'/ʊə/ tour 🧳', back:'tour, poor, sure, cure', word:'tour' },
+      ]},
+      { type:'flashcards', title:'重音与连读基础', items: [
+        { front:'重音规则 📌', back:'双音节词重音通常在第一个音节：APple, TAble, WINdow', word:'apple' },
+        { front:'连读 Linking 🔗', back:'"an apple" → "anapple" (辅音+元音连读)', word:'an apple' },
+        { front:'弱读 Schwa', back:'"to" 常读作 /tə/：go to school → "go tə school"', word:'to' },
+        { front:'失去爆破 💨', back:'"good morning" → "goo(d) morning" (d不发音)', word:'good' },
+        { front:'同化 Assimilation', back:'"don\'t you" → "donchu" (t+y→ch)', word:'you' },
+        { front:'语调 Intonation ⬆', back:'一般疑问句末尾升调↗："Are you OK? ↗"', word:'ok' },
+      ]},
+      { type:'conversation', title:'发音练习', scenario:'pronunciation', teacherName:'Emma老师',
+        messages: [
+          { role:'teacher', text:'你好！我是Emma老师。我们先来练习几个基础发音。跟我读：/iː/ — see 👀' },
+          { role:'teacher', text:'很好！现在试试：/æ/ — cat 🐱。注意嘴巴要张大！' },
+          { role:'teacher', text:'太棒了！再读一个双元音：/aɪ/ — my, like, time。你试试说 "I like..."' },
+          { role:'teacher', text:'你的发音很棒！记住：多练习元音，英语发音就成功了一半！' },
+        ]},
+    ],
+    quiz: {
+      title: '发音基础测验', passScore: 70,
+      questions: [
+        { q:'字母 "A" 的发音是什么？', opts:['/eɪ/','/aɪ/','/iː/','/æ/'], ans:0 },
+        { q:'"cat" 中的元音是什么？', opts:['/iː/','/æ/','/e/','/ʌ/'], ans:1 },
+        { q:'/aɪ/ 是哪个词的发音？', opts:['day','my','boy','go'], ans:1 },
+        { q:'"apple" 的重音在第几个音节？', opts:['第一个','第二个','同样重','没有重音'], ans:0 },
+        { q:'连读 "an apple" 读起来像？', opts:['an-apple','anapple','a-napple','an-ah-ple'], ans:1 },
+        { q:'英语有多少个字母？', opts:['24','25','26','30'], ans:2 },
+        { q:'"book" 中的元音 /ʊ/ 是：', opts:['长音','短音','双元音','鼻音'], ans:1 },
+        { q:'一般疑问句的语调通常是？', opts:['降调','升调','平调','无变化'], ans:1 },
+      ]
+    }
+  },
+
+  // ── STAGE 2: 核心词汇300 ──
+  2: {
+    lessons: [
+      { type:'flashcards', title:'数字与时间', items: [
+        { front:'One 1', back:'一', word:'one' },{ front:'Two 2', back:'二', word:'two' },
+        { front:'Three 3', back:'三', word:'three' },{ front:'Four 4', back:'四', word:'four' },
+        { front:'Five 5', back:'五', word:'five' },{ front:'Six 6', back:'六', word:'six' },
+        { front:'Seven 7', back:'七', word:'seven' },{ front:'Eight 8', back:'八', word:'eight' },
+        { front:'Nine 9', back:'九', word:'nine' },{ front:'Ten 10', back:'十', word:'ten' },
+        { front:'Today 📅', back:'今天', word:'today' },{ front:'Tomorrow', back:'明天', word:'tomorrow' },
+        { front:'Morning ☀️', back:'早上', word:'morning' },{ front:'Night 🌙', back:'晚上', word:'night' },
+      ]},
+      { type:'flashcards', title:'家庭成员', items: [
+        { front:'Mother 👩', back:'妈妈', word:'mother' },{ front:'Father 👨', back:'爸爸', word:'father' },
+        { front:'Sister 👧', back:'姐妹', word:'sister' },{ front:'Brother 👦', back:'兄弟', word:'brother' },
+        { front:'Baby 👶', back:'宝宝', word:'baby' },{ front:'Friend 🤝', back:'朋友', word:'friend' },
+        { front:'Family', back:'家庭', word:'family' },{ front:'Child 👧', back:'孩子', word:'child' },
+      ]},
+      { type:'flashcards', title:'身体部位', items: [
+        { front:'Head', back:'头', word:'head' },{ front:'Eye 👁️', back:'眼睛', word:'eye' },
+        { front:'Ear 👂', back:'耳朵', word:'ear' },{ front:'Nose 👃', back:'鼻子', word:'nose' },
+        { front:'Mouth 👄', back:'嘴巴', word:'mouth' },{ front:'Hand ✋', back:'手', word:'hand' },
+        { front:'Foot 🦶', back:'脚', word:'foot' },{ front:'Face', back:'脸', word:'face' },
+      ]},
+      { type:'flashcards', title:'食物饮料', items: [
+        { front:'Water 💧', back:'水', word:'water' },{ front:'Rice 🍚', back:'米饭', word:'rice' },
+        { front:'Bread 🍞', back:'面包', word:'bread' },{ front:'Milk 🥛', back:'牛奶', word:'milk' },
+        { front:'Apple 🍎', back:'苹果', word:'apple' },{ front:'Chicken 🍗', back:'鸡肉', word:'chicken' },
+        { front:'Egg 🥚', back:'鸡蛋', word:'egg' },{ front:'Fish 🐟', back:'鱼', word:'fish' },
+        { front:'Coffee ☕', back:'咖啡', word:'coffee' },{ front:'Tea 🍵', back:'茶', word:'tea' },
+      ]},
+      { type:'flashcards', title:'颜色与天气', items: [
+        { front:'Red 🔴', back:'红色', word:'red' },{ front:'Blue 🔵', back:'蓝色', word:'blue' },
+        { front:'Green 🟢', back:'绿色', word:'green' },{ front:'Black ⚫', back:'黑色', word:'black' },
+        { front:'White ⚪', back:'白色', word:'white' },{ front:'Sunny ☀️', back:'晴天', word:'sunny' },
+        { front:'Rain 🌧️', back:'下雨', word:'rain' },{ front:'Cold 🥶', back:'冷的', word:'cold' },
+        { front:'Hot 🔥', back:'热的', word:'hot' },{ front:'Wind 💨', back:'风', word:'wind' },
+      ]},
+      { type:'flashcards', title:'高频动词50', items: [
+        { front:'Be (am/is/are)', back:'是', word:'be' },{ front:'Have', back:'有', word:'have' },
+        { front:'Do', back:'做', word:'do' },{ front:'Go', back:'去', word:'go' },
+        { front:'Come', back:'来', word:'come' },{ front:'See', back:'看见', word:'see' },
+        { front:'Eat', back:'吃', word:'eat' },{ front:'Drink', back:'喝', word:'drink' },
+        { front:'Like ❤️', back:'喜欢', word:'like' },{ front:'Want', back:'想要', word:'want' },
+        { front:'Know', back:'知道', word:'know' },{ front:'Think 💭', back:'想/认为', word:'think' },
+        { front:'Say', back:'说', word:'say' },{ front:'Make', back:'做/制作', word:'make' },
+      ]},
+      { type:'conversation', title:'词汇实战对话', scenario:'vocab_practice', teacherName:'Tom老师',
+        messages: [
+          { role:'teacher', text:'你好！我是Tom老师。我们来用学过的单词对话吧。你叫什么名字？' },
+          { role:'teacher', text:'很好！你早餐吃了什么？用英语告诉我。' },
+          { role:'teacher', text:'不错！你喜欢什么颜色？用 "I like..." 来回答。' },
+          { role:'teacher', text:'太棒了！你今天已经能说出这么多英语单词了！继续加油！' },
+        ]},
+    ],
+    quiz: {
+      title: '词汇测验', passScore: 70,
+      questions: [
+        { q:'"water" 是什么意思？', opts:['火','水','风','土'], ans:1 },
+        { q:'"mother" 中文是？', opts:['爸爸','妈妈','姐姐','弟弟'], ans:1 },
+        { q:'你用什么看东西？', opts:['ear','nose','eye','mouth'], ans:2 },
+        { q:'哪个是数字？', opts:['red','big','seven','hot'], ans:2 },
+        { q:'"hot" 的反义词是？', opts:['big','cold','fast','small'], ans:1 },
+        { q:'"I like ___" — 选食物：', opts:['chair','bread','book','car'], ans:1 },
+        { q:'"go" 是什么意思？', opts:['来','去','吃','看'], ans:1 },
+        { q:'"today" 的反义词（明天）是？', opts:['yesterday','tomorrow','morning','night'], ans:1 },
+      ]
+    }
+  },
+
+  // ── STAGE 3: 基础语法 ──
+  3: {
+    lessons: [
+      { type:'flashcards', title:'be动词 (am/is/are)', items: [
+        { front:'I am 😊', back:'我是 — I am happy（我很开心）', word:'am' },
+        { front:'You are 👉', back:'你是 — You are kind（你很善良）', word:'are' },
+        { front:'He is 👨', back:'他是 — He is tall（他很高）', word:'is' },
+        { front:'She is 👩', back:'她是 — She is beautiful（她很漂亮）', word:'is' },
+        { front:'It is 🐱', back:'它是 — It is big（它很大）', word:'is' },
+        { front:'We are 👫', back:'我们是 — We are friends（我们是朋友）', word:'are' },
+        { front:'They are 👥', back:'他们是 — They are students（他们是学生）', word:'are' },
+        { front:'否定: I am not', back:'我不是 — I am not tired（我不累）', word:'not' },
+      ]},
+      { type:'flashcards', title:'人称代词', items: [
+        { front:'I — 我', back:'I am a student', word:'I' },
+        { front:'You — 你/你们', back:'You are my friend', word:'you' },
+        { front:'He — 他', back:'He is from China', word:'he' },
+        { front:'She — 她', back:'She likes music', word:'she' },
+        { front:'It — 它', back:'It is a cat', word:'it' },
+        { front:'We — 我们', back:'We are happy', word:'we' },
+        { front:'They — 他们', back:'They are teachers', word:'they' },
+        { front:'My/Your/His/Her', back:'我的/你的/他的/她的', word:'my' },
+      ]},
+      { type:'flashcards', title:'一般现在时', items: [
+        { front:'I eat 🍽️', back:'我吃 — I eat rice every day', word:'eat' },
+        { front:'He eats', back:'他吃 — He eats bread（注意+s!）', word:'eats' },
+        { front:'I go to school 🏫', back:'我去学校', word:'go' },
+        { front:'She goes to work 💼', back:'她去上班（第三人称+es）', word:'goes' },
+        { front:'I like coffee ☕', back:'我喜欢咖啡', word:'like' },
+        { front:'He likes tea 🍵', back:'他喜欢茶（第三人称+s）', word:'likes' },
+        { front:'I don\'t know', back:'我不知道（否定用don\'t）', word:'don\'t' },
+        { front:'She doesn\'t know', back:'她不知道（第三人称doesn\'t）', word:'doesn\'t' },
+      ]},
+      { type:'flashcards', title:'简单问句 (Wh-Questions)', items: [
+        { front:'What?', back:'什么？— What is this?（这是什么？）', word:'what' },
+        { front:'Where? 📍', back:'哪里？— Where are you?（你在哪？）', word:'where' },
+        { front:'Who? 👤', back:'谁？— Who is that?（那是谁？）', word:'who' },
+        { front:'When? 🕐', back:'什么时候？— When do you go?（你什么时候去？）', word:'when' },
+        { front:'Why? ❓', back:'为什么？— Why are you sad?（你为什么难过？）', word:'why' },
+        { front:'How?', back:'怎么？— How are you?（你好吗？）', word:'how' },
+        { front:'How much? 💰', back:'多少(钱)？— How much is it?（多少钱？）', word:'how much' },
+        { front:'How many? 🔢', back:'多少(数量)？— How many apples?（几个苹果？）', word:'how many' },
+      ]},
+      { type:'conversation', title:'语法实战对话', scenario:'grammar_practice', teacherName:'Sarah老师',
+        messages: [
+          { role:'teacher', text:'你好！我是Sarah老师。用 "I am" 来介绍你自己吧！比如：I am a student.' },
+          { role:'teacher', text:'很好！你来自哪里？用 "I am from..." 回答。' },
+          { role:'teacher', text:'不错！你每天做什么？用一般现在时说说，比如 "I eat breakfast at 7."' },
+          { role:'teacher', text:'你的语法基础很扎实！能正确用 be动词和一般现在时，进步很大！' },
+        ]},
+    ],
+    quiz: {
+      title: '语法测验', passScore: 70,
+      questions: [
+        { q:'"I ___ a student" — 选择正确：', opts:['am','is','are','be'], ans:0 },
+        { q:'"She ___ happy" — 选择正确：', opts:['am','is','are','be'], ans:1 },
+        { q:'"They ___ friends" — 选择正确：', opts:['am','is','are','be'], ans:2 },
+        { q:'"He ___ to school every day"', opts:['go','goes','going','went'], ans:1 },
+        { q:'问地点用哪个词？', opts:['What','Who','Where','When'], ans:2 },
+        { q:'否定句 "I ___ like coffee"', opts:['am not','isn\'t','don\'t','doesn\'t'], ans:2 },
+        { q:'"She ___ like tea" (否定)', opts:['don\'t','doesn\'t','isn\'t','not'], ans:1 },
+        { q:'"___ is your name?"', opts:['Where','When','Who','What'], ans:3 },
+      ]
+    }
+  },
+
+  // ── STAGE 4: 高频句型 ──
+  4: {
+    lessons: [
+      { type:'flashcards', title:'我... (I...) 句型', items: [
+        { front:'I am... 👤', back:'我是... — I am a student / I am from China', word:'I am' },
+        { front:'I have... ✋', back:'我有... — I have a dog / I have a dream', word:'have' },
+        { front:'I like... ❤️', back:'我喜欢... — I like music / I like reading', word:'like' },
+        { front:'I want... 🙏', back:'我想要... — I want coffee / I want to go', word:'want' },
+        { front:'I can... 💪', back:'我能/会... — I can swim / I can speak English', word:'can' },
+        { front:'I need... 🆘', back:'我需要... — I need help / I need water', word:'need' },
+        { front:'I think... 💭', back:'我认为... — I think it\'s good / I think so', word:'think' },
+        { front:'I know... 🧠', back:'我知道... — I know that / I don\'t know', word:'know' },
+      ]},
+      { type:'flashcards', title:'There be 句型', items: [
+        { front:'There is... (单数)', back:'有... — There is a book on the table', word:'there is' },
+        { front:'There are... (复数)', back:'有... — There are many people here', word:'there are' },
+        { front:'Is there...?', back:'有...吗？— Is there a bank near here?', word:'is there' },
+        { front:'There is no...', back:'没有... — There is no time', word:'no' },
+      ]},
+      { type:'flashcards', title:'请求与建议', items: [
+        { front:'Can I...? 🙋', back:'我可以...吗？— Can I help you? / Can I go?', word:'can I' },
+        { front:'Would you like...?', back:'你想要...吗？— Would you like some tea?', word:'would you' },
+        { front:'Let\'s... 👫', back:'让我们... — Let\'s go! / Let\'s eat!', word:'let\'s' },
+        { front:'How about...?', back:'...怎么样？— How about coffee?', word:'how about' },
+        { front:'I would like...', back:'我想要（礼貌）— I\'d like a coffee, please', word:'would like' },
+        { front:'Could you...?', back:'你能...吗？(礼貌) — Could you help me?', word:'could' },
+      ]},
+      { type:'flashcards', title:'日常寒暄句型', items: [
+        { front:'How are you?', back:'你好吗？— I\'m fine, thank you.', word:'how are you' },
+        { front:'Nice to meet you!', back:'很高兴认识你！— Nice to meet you too!', word:'nice' },
+        { front:'What do you do?', back:'你做什么工作？— I\'m a teacher.', word:'do' },
+        { front:'Where are you from?', back:'你来自哪里？— I\'m from China.', word:'from' },
+        { front:'How\'s the weather?', back:'天气怎么样？— It\'s sunny today.', word:'weather' },
+        { front:'See you later!', back:'回头见！— See you! / Bye!', word:'see you' },
+        { front:'Have a nice day! ☀️', back:'祝你愉快！— Thanks, you too!', word:'nice day' },
+        { front:'Excuse me...', back:'打扰一下... — Excuse me, where is...?', word:'excuse me' },
+      ]},
+      { type:'conversation', title:'句型实战对话', scenario:'pattern_practice', teacherName:'James老师',
+        messages: [
+          { role:'teacher', text:'你好！我是James老师。我们用学过的句型来对话。你喜欢什么？用 "I like..." 回答。' },
+          { role:'teacher', text:'不错！你会做什么？用 "I can..." 告诉我。' },
+          { role:'teacher', text:'很好！现在你在一家咖啡店。用 "I would like..." 来点咖啡。' },
+          { role:'teacher', text:'太棒了！你已经能熟练使用这些高频句型，日常对话不成问题了！' },
+        ]},
+    ],
+    quiz: {
+      title: '句型测验', passScore: 70,
+      questions: [
+        { q:'"我想喝水" 用英语说：', opts:['I am water','I have water','I want water','I can water'], ans:2 },
+        { q:'"桌子上一本书" 是：', opts:['There is a book','There are a book','It is book','Book is there'], ans:0 },
+        { q:'礼貌地请求帮助：', opts:['Help me','Could you help me?','You help','I want help'], ans:1 },
+        { q:'"我们走吧！" 用英语：', opts:['We go','Go we','Let\'s go','Going we'], ans:2 },
+        { q:'"我可以进去吗？"：', opts:['I go in?','Can I come in?','I come in','Come in I?'], ans:1 },
+        { q:'"很高兴认识你" 是：', opts:['Good morning','How are you','Nice to meet you','Goodbye'], ans:2 },
+        { q:'"How\'s the weather?" 意思是：', opts:['你多大','天气怎么样','你做什么','你住哪里'], ans:1 },
+        { q:'"I think ___" — 表达观点选：', opts:['so','yes','no','well'], ans:0 },
+      ]
+    }
+  },
+
+  // ── STAGE 5: 听力训练 ──
+  5: {
+    lessons: [
+      { type:'flashcards', title:'听力关键词汇', items: [
+        { front:'Listen 👂', back:'听 — Listen carefully!（仔细听！）', word:'listen' },
+        { front:'Repeat 🔁', back:'重复 — Can you repeat that?（能再说一遍吗？）', word:'repeat' },
+        { front:'Understand', back:'理解 — I understand / I don\'t understand', word:'understand' },
+        { front:'Slowly 🐢', back:'慢点 — Please speak slowly（请说慢一点）', word:'slowly' },
+        { front:'Again 🔄', back:'再一次 — Say it again, please（请再说一次）', word:'again' },
+        { front:'Sorry?', back:'什么？(没听清) — Sorry? What did you say?', word:'sorry' },
+        { front:'Pardon?', back:'请再说一遍 — Pardon me?（更礼貌）', word:'pardon' },
+      ]},
+      { type:'flashcards', title:'常见听力场景词汇', items: [
+        { front:'Left / Right', back:'左 / 右 — Turn left, go right', word:'left' },
+        { front:'Up / Down', back:'上 / 下 — Go up the stairs', word:'up' },
+        { front:'Near / Far', back:'近 / 远 — Is it near or far?', word:'near' },
+        { front:'Before / After', back:'之前 / 之后 — Before dinner, after work', word:'before' },
+        { front:'First / Then / Finally', back:'首先 / 然后 / 最后 — First... then... finally...', word:'first' },
+        { front:'Wait ⏳', back:'等待 — Wait a moment / Wait for me', word:'wait' },
+        { front:'Hurry 🏃', back:'快点 — Hurry up! / No hurry（不着急）', word:'hurry' },
+        { front:'Careful ⚠️', back:'小心 — Be careful! / Watch out!', word:'careful' },
+      ]},
+      { type:'conversation', title:'听力理解练习', scenario:'listening', teacherName:'Emma老师',
+        messages: [
+          { role:'teacher', text:'你好！我是Emma老师。今天练习听力。我会说一句英语，你试着听并回应。准备好了吗？' },
+          { role:'teacher', text:'First question: "What time do you usually wake up?" 你通常几点起床？' },
+          { role:'teacher', text:'很好！Next: "Can you tell me how to get to the nearest subway station?" 你能告诉我怎么去最近的地铁站吗？' },
+          { role:'teacher', text:'你听懂了！听力是慢慢练出来的，每天坚持听一点，耳朵会越来越灵！' },
+        ]},
+      { type:'conversation', title:'数字与时间听力', scenario:'number_listening', teacherName:'Tom老师',
+        messages: [
+          { role:'teacher', text:'我们来练习听数字。我会说几个数字，你重复。First: "twenty-five" (25)' },
+          { role:'teacher', text:'Good! Now: "one hundred and thirty-seven" (137)' },
+          { role:'teacher', text:'Last one: "It\'s half past three" — 现在是几点？' },
+          { role:'teacher', text:'数字听力你掌握得不错！日常生活中数字非常重要——价格、时间、电话都要用到。' },
+        ]},
+    ],
+    quiz: {
+      title: '听力测验', passScore: 70,
+      questions: [
+        { q:'没听清别人说什么，最常用的是？', opts:['What?','Sorry?','Hello?','Yes?'], ans:1 },
+        { q:'"Please speak slowly" 意思是？', opts:['请大声说','请说慢一点','请快点说','请再说一遍'], ans:1 },
+        { q:'"left" 是什么意思？', opts:['右','前','左','后'], ans:2 },
+        { q:'问路时听到 "Go straight" ——你应该：', opts:['转弯','停下','直走','往回走'], ans:2 },
+        { q:'"before dinner" 意思是？', opts:['饭后','饭前','正在吃饭','不做饭'], ans:1 },
+        { q:'"Can you repeat that?" 什么时候用？', opts:['问好时','告别时','没听清时','感谢时'], ans:2 },
+        { q:'"Be careful!" 表示什么？', opts:['快点','小心','等一下','过来'], ans:1 },
+        { q:'听懂英语的关键是？', opts:['每个词都听懂','抓关键词+上下文','只听语法','只听发音'], ans:1 },
+      ]
+    }
+  },
+
+  // ── STAGE 6: 跟读与口语 ──
+  6: {
+    lessons: [
+      { type:'flashcards', title:'自我介绍模板', items: [
+        { front:'自我介绍结构', back:'1. 姓名 2. 来自哪里 3. 工作/学习 4. 爱好 5. 结尾', word:'introduce' },
+        { front:'Hi, I\'m [Name] 👋', back:'你好，我是[名字]', word:'hi' },
+        { front:'I\'m from [place]', back:'我来自[某地]', word:'from' },
+        { front:'I work as a [job]', back:'我是[职业]', word:'work' },
+        { front:'I study at [school]', back:'我在[学校]学习', word:'study' },
+        { front:'In my free time, I like...', back:'我空闲时喜欢...', word:'free time' },
+        { front:'Nice to meet you!', back:'很高兴认识你！（结尾）', word:'nice' },
+        { front:'Thank you for listening!', back:'谢谢聆听！', word:'thank you' },
+      ]},
+      { type:'flashcards', title:'常见口语表达', items: [
+        { front:'I see 👀', back:'我明白了/原来如此', word:'see' },
+        { front:'No problem!', back:'没问题！', word:'problem' },
+        { front:'Sounds good! 👍', back:'听起来不错！', word:'sounds' },
+        { front:'I\'m not sure 🤔', back:'我不确定', word:'sure' },
+        { front:'That\'s interesting!', back:'真有趣！', word:'interesting' },
+        { front:'Let me think...', back:'让我想想...', word:'think' },
+        { front:'What do you mean?', back:'你什么意思？', word:'mean' },
+        { front:'Could you explain?', back:'能解释一下吗？', word:'explain' },
+        { front:'I agree 👍 / I disagree', back:'我同意 / 我不同意', word:'agree' },
+        { front:'In my opinion...', back:'在我看来...', word:'opinion' },
+      ]},
+      { type:'conversation', title:'自我介绍练习', scenario:'self_intro', teacherName:'Sarah老师',
+        messages: [
+          { role:'teacher', text:'你好！我是Sarah老师。今天练习自我介绍。请你用英语介绍自己——姓名、来自哪里、做什么。' },
+          { role:'teacher', text:'很好！再补充一下——你空闲时间喜欢做什么？用 "In my free time, I like..." 开头。' },
+          { role:'teacher', text:'不错！最后用 "Nice to meet you" 来结束。现在从头到尾完整说一遍！' },
+          { role:'teacher', text:'太棒了！你现在能做完整的英文自我介绍了！这是日常交流的第一步！' },
+        ]},
+      { type:'conversation', title:'日常对话跟读', scenario:'shadowing', teacherName:'James老师',
+        messages: [
+          { role:'teacher', text:'我们来练习跟读（shadowing）。我先说一句，你跟着重复。Ready? "I went to the supermarket yesterday."' },
+          { role:'teacher', text:'Good! 现在快一点： "I bought some milk, bread, and eggs."' },
+          { role:'teacher', text:'再来一句长一点的： "The weather was really nice, so I decided to walk home."' },
+          { role:'teacher', text:'Excellent shadowing! 跟读是提高口语最有效的方法，每天练10分钟，一个月后口语会有质的飞跃！' },
+        ]},
+    ],
+    quiz: {
+      title: '口语测验', passScore: 70,
+      questions: [
+        { q:'自我介绍第一句通常是什么？', opts:['Goodbye','Hi, I\'m...','How are you','What is this'], ans:1 },
+        { q:'"I see" 在日常对话中的意思是？', opts:['我看见','我明白了','我眼睛','我看看'], ans:1 },
+        { q:'"Sounds good!" 表示？', opts:['听起来不错','声音很好','听起来很吵','听不见'], ans:0 },
+        { q:'表达不确定时用：', opts:['Of course','I\'m not sure','Absolutely','No problem'], ans:1 },
+        { q:'跟读（shadowing）练习主要训练什么？', opts:['阅读','写作','听力和口语同步','语法'], ans:2 },
+        { q:'"What do you mean?" 什么时候用？', opts:['同意时','没听懂时','告别时','感谢时'], ans:1 },
+        { q:'"In my opinion" 后面接什么？', opts:['问候','告别','观点','数字'], ans:2 },
+        { q:'口语流利的关键是？', opts:['只背单词','多听多说多模仿','只学语法','只看书'], ans:1 },
+      ]
+    }
+  },
+
+  // ── STAGE 7: 场景实战 ──
+  7: {
+    lessons: [
+      { type:'flashcards', title:'在餐厅 🍽️', items: [
+        { front:'I would like to order', back:'我想点餐', word:'order' },
+        { front:'Can I see the menu?', back:'能看下菜单吗？', word:'menu' },
+        { front:'I\'ll have the chicken', back:'我要鸡肉', word:'chicken' },
+        { front:'How much is it?', back:'多少钱？', word:'how much' },
+        { front:'The bill, please 💳', back:'买单，谢谢', word:'bill' },
+        { front:'It\'s delicious! 😋', back:'太好吃了！', word:'delicious' },
+        { front:'Can I get a refill?', back:'能续杯吗？', word:'refill' },
+        { front:'Take away, please 🥡', back:'打包带走', word:'take away' },
+      ]},
+      { type:'flashcards', title:'购物 🛍️', items: [
+        { front:'How much is this?', back:'这个多少钱？', word:'how much' },
+        { front:'Can I try this on?', back:'我能试穿吗？', word:'try on' },
+        { front:'Do you have a bigger size?', back:'有大一号的吗？', word:'size' },
+        { front:'I\'m just looking 👀', back:'我只是看看（不买）', word:'looking' },
+        { front:'I\'ll take it!', back:'我买了！', word:'take' },
+        { front:'Where do I pay?', back:'在哪付款？', word:'pay' },
+        { front:'Cash or card? 💰', back:'现金还是刷卡？', word:'cash' },
+        { front:'Can I get a receipt?', back:'能给我收据吗？', word:'receipt' },
+      ]},
+      { type:'flashcards', title:'问路 🗺️', items: [
+        { front:'Excuse me, where is...?', back:'打扰一下，...在哪？', word:'where' },
+        { front:'Go straight', back:'直走', word:'straight' },
+        { front:'Turn left / right', back:'左转 / 右转', word:'turn' },
+        { front:'It\'s on the corner', back:'在拐角处', word:'corner' },
+        { front:'How far is it?', back:'有多远？', word:'far' },
+        { front:'Is it within walking distance?', back:'走路能到吗？', word:'walking' },
+        { front:'Take the subway 🚇', back:'坐地铁', word:'subway' },
+        { front:'It\'s across from the bank', back:'在银行对面', word:'across' },
+      ]},
+      { type:'flashcards', title:'电话与看病', items: [
+        { front:'Hello, this is [name]', back:'你好，我是[name]（电话开场）', word:'hello' },
+        { front:'May I speak to...?', back:'请问...在吗？', word:'speak' },
+        { front:'I\'ll call you back', back:'我回头打给你', word:'call back' },
+        { front:'I don\'t feel well 🤒', back:'我不舒服', word:'feel' },
+        { front:'I have a headache', back:'我头疼', word:'headache' },
+        { front:'Where does it hurt?', back:'哪里疼？', word:'hurt' },
+        { front:'I need a doctor 🏥', back:'我需要看医生', word:'doctor' },
+        { front:'Take this medicine 💊', back:'吃这个药', word:'medicine' },
+      ]},
+      { type:'conversation', title:'餐厅点餐实战', scenario:'restaurant_real', teacherName:'Emma老师',
+        messages: [
+          { role:'teacher', text:'Welcome! 欢迎光临！我是服务员Emma。请问您几位？How many people?' },
+          { role:'teacher', text:'好的。这是菜单。What would you like to order? 想点什么？' },
+          { role:'teacher', text:'好选择！Would you like anything to drink? 想喝点什么吗？' },
+          { role:'teacher', text:'一共是25美元。Cash or card? 现金还是刷卡？好的，这是您的找零。Have a nice day!' },
+        ]},
+      { type:'conversation', title:'购物实战', scenario:'shopping_real', teacherName:'Tom老师',
+        messages: [
+          { role:'teacher', text:'Hi! Can I help you find something? 你好，需要帮忙找什么吗？' },
+          { role:'teacher', text:'好的，这边请。这件怎么样？Would you like to try it on? 想试穿吗？' },
+          { role:'teacher', text:'试衣间在那边。这个尺码合适吗？Is the size OK?' },
+          { role:'teacher', text:'好的，这件50美元。How would you like to pay? 现金还是刷卡？谢谢你，欢迎下次再来！' },
+        ]},
+    ],
+    quiz: {
+      title: '场景测验', passScore: 70,
+      questions: [
+        { q:'点餐时第一句话通常是？', opts:['Goodbye','I would like to order','How old are you','Where are you'], ans:1 },
+        { q:'"How much is it?" 什么时候用？', opts:['问时间','问价格','问地点','问年龄'], ans:1 },
+        { q:'"Go straight then turn left" 意思是？', opts:['停下来','直走然后左转','往回走','右转'], ans:1 },
+        { q:'在店里只想看看，说什么？', opts:['I\'ll take it','I\'m just looking','Give me','I want'], ans:1 },
+        { q:'"The bill, please" 在哪里用？', opts:['学校','医院','餐厅','公园'], ans:2 },
+        { q:'打电话找某人 "May I ___ to John?"', opts:['say','tell','speak','talk'], ans:2 },
+        { q:'"I don\'t feel well" 表示什么？', opts:['我很好','我不舒服','我很开心','我很累'], ans:1 },
+        { q:'购物时 "Do you have a bigger size?" 意思是？', opts:['更便宜','更大码','更小码','不同颜色'], ans:1 },
+      ]
+    }
+  },
+
+  // ── STAGE 8: 流利对话 ──
+  8: {
+    lessons: [
+      { type:'flashcards', title:'观点表达 💭', items: [
+        { front:'In my opinion...', back:'在我看来...', word:'opinion' },
+        { front:'I think that...', back:'我认为...', word:'think' },
+        { front:'I believe...', back:'我相信...', word:'believe' },
+        { front:'From my perspective...', back:'从我的角度看...', word:'perspective' },
+        { front:'I agree / I disagree', back:'我同意 / 我不同意', word:'agree' },
+        { front:'That\'s a good point!', back:'说得好！', word:'point' },
+        { front:'On the other hand...', back:'另一方面...', word:'other hand' },
+        { front:'In conclusion...', back:'总之...', word:'conclusion' },
+      ]},
+      { type:'flashcards', title:'讲述经历', items: [
+        { front:'Once, I...', back:'有一次，我...', word:'once' },
+        { front:'It was amazing!', back:'太棒了！', word:'amazing' },
+        { front:'I will never forget...', back:'我永远不会忘记...', word:'forget' },
+        { front:'The best part was...', back:'最棒的部分是...', word:'best' },
+        { front:'I learned that...', back:'我从中学到...', word:'learned' },
+        { front:'At first... but then...', back:'一开始...但后来...', word:'first' },
+        { front:'Looking back...', back:'回想起来...', word:'looking back' },
+        { front:'It changed my life', back:'它改变了我的人生', word:'changed' },
+      ]},
+      { type:'flashcards', title:'辩论与讨论', items: [
+        { front:'What do you think about...?', back:'你觉得...怎么样？', word:'think about' },
+        { front:'I see your point, but...', back:'我懂你的意思，但...', word:'point' },
+        { front:'Have you considered...?', back:'你有没有想过...？', word:'considered' },
+        { front:'That\'s a fair argument', back:'这说得有道理', word:'fair' },
+        { front:'Let me give you an example', back:'我举个例子', word:'example' },
+        { front:'The reason is...', back:'原因是...', word:'reason' },
+        { front:'In the long run...', back:'从长远来看...', word:'long run' },
+        { front:'To sum up...', back:'总结一下...', word:'sum up' },
+      ]},
+      { type:'conversation', title:'辩论：城市vs乡村', scenario:'debate', teacherName:'James老师',
+        messages: [
+          { role:'teacher', text:'我们来辩论一个话题：城市生活好还是乡村生活好？你先选一个立场，说说你的理由。' },
+          { role:'teacher', text:'有趣的论点！但是你有没有考虑过...城市里的生活成本和压力呢？' },
+          { role:'teacher', text:'好观点！你能举个具体例子来支持你的看法吗？' },
+          { role:'teacher', text:'你的论点条理清晰，表达流畅！能在辩论中用英语表达观点，说明你已经达到日常交流流利的水平了。恭喜！🎉' },
+        ]},
+      { type:'conversation', title:'讲述难忘经历', scenario:'story', teacherName:'Sarah老师',
+        messages: [
+          { role:'teacher', text:'请用英语给我讲一个你难忘的经历。可以是旅行、学习或任何让你印象深刻的事。' },
+          { role:'teacher', text:'很有趣！那最让你难忘的是什么？用 "The best part was..." 来描述。' },
+          { role:'teacher', text:'你从这次经历中学到了什么？用 "I learned that..." 来表达。' },
+          { role:'teacher', text:'讲得真好！你能用英语完整地讲述一段经历，这可是日常流利交流的重要能力！你已经完成了所有阶段，非常了不起！🏆' },
+        ]},
+    ],
+    quiz: {
+      title: '流利对话测验', passScore: 75,
+      questions: [
+        { q:'表达观点最常用：', opts:['Goodbye','In my opinion','Hello','Thank you'], ans:1 },
+        { q:'"On the other hand" 表示什么？', opts:['另一方面','我同意','再见','你好'], ans:0 },
+        { q:'"I see your point, but..." 是什么意思？', opts:['我不同意','我懂但你不对','我懂你的意思但是...','我看不见'], ans:2 },
+        { q:'讲故事时 "Once, I..." 用于：', opts:['结尾','开头','中间','标题'], ans:1 },
+        { q:'"That\'s a fair argument" 表示：', opts:['不公正','说得有道理','你错了','太差了'], ans:1 },
+        { q:'总结时用：', opts:['Hello','First','In conclusion','Maybe'], ans:2 },
+        { q:'"Let me give you an example" 后接：', opts:['问候','告别','例子','问题'], ans:2 },
+        { q:'达到日常流利交流最关键的是？', opts:['只背单词','持续大量听说输入+实际使用','只学语法','只看美剧'], ans:1 },
+      ]
+    }
+  },
+};
+
+
+// ── STAGE ACCESS LOGIC ──
+function getStageStatus(stageId) {
+  if (stageId === 0) {
+    if (state.placementDone) return 'completed';
+    return 'current';
+  }
+  // Stage 1 is always accessible for true beginners
+  if (stageId === 1) {
+    if (state.currentStage > 1) return 'completed';
+    return 'current';
+  }
+  if (state.currentStage === 0 && !state.placementDone) return 'locked';
+  if (state.currentStage > stageId) return 'completed';
+  if (state.currentStage === stageId) return 'current';
+  return 'locked';
+}
+
+function getEffectiveStage() {
+  if (!state.placementDone) return 0;
+  return state.currentStage || 1;
+}
+
+// ═══════════════════════════════════════
+//  RENDER: DASHBOARD
+// ═══════════════════════════════════════
+
+function renderDashboard() {
+  currentView = 'dashboard';
+  renderNav();
+  updateHeader();
+  const main = document.getElementById('main-content');
+  const effStage = getEffectiveStage();
+
+  let html = '';
+
+  // XP Bar
+  const xpPct = Math.round((state.xp / state.xpToNext) * 100);
+  html += `<div class="xp-bar-wrap">
+    <div class="xp-bar-label"><span>等级 ${state.level}</span><span>${state.xp} / ${state.xpToNext} XP</span></div>
+    <div class="xp-bar"><div class="xp-bar-fill" style="width:${xpPct}%"></div></div>
+  </div>`;
+
+  // Badges row
+  if (state.badges.length > 0) {
+    const allBadges = [
+      { id:'first_lesson', icon:'👶' },{ id:'streak3', icon:'🔥' },{ id:'streak7', icon:'💪' },
+      { id:'level5', icon:'⭐' },{ id:'level10', icon:'🎓' },{ id:'stage3', icon:'💬' },
+      { id:'stage5', icon:'🌍' },{ id:'stage7', icon:'🏆' },{ id:'vocab50', icon:'📖' },{ id:'perfect', icon:'💯' },
+    ];
+    html += `<div class="badges-row">${allBadges.map(b =>
+      `<span class="badge-item${state.badges.includes(b.id)?' unlocked':''}" title="${b.id}">${b.icon}</span>`
+    ).join('')}</div>`;
+  }
+
+  // Stage cards
+  html += `<div class="stage-grid">`;
+  for (const s of STAGES) {
+    const status = getStageStatus(s.id);
+    const statusClass = status === 'completed' ? 'done-badge' : status === 'current' ? 'current-badge' : 'locked-badge';
+    const statusText = status === 'completed' ? '✓ 已完成' : status === 'current' ? '▶ 进行中' : '🔒 未解锁';
+
+    if (s.id === 0) {
+      // Placement test
+      html += `<div class="stage-card ${status}" onclick="${status !== 'completed' ? `startPlacement()` : `showToast('Placement test already completed!')`}">
+        <div class="stage-icon" style="background:${s.color}22;color:${s.color}">${s.icon}</div>
+        <div class="stage-info"><h3>${s.name}</h3><p>${s.desc}</p></div>
+        <div class="stage-status ${statusClass}">${statusText}</div>
+      </div>`;
+    } else {
+      const locked = status === 'locked';
+      html += `<div class="stage-card ${status}${locked?' locked':''}" onclick="${locked ? '' : `openStage(${s.id})`}">
+        <div class="stage-icon" style="background:${s.color}22;color:${s.color}">${s.icon}</div>
+        <div class="stage-info"><h3>第${s.id}阶段：${s.name}</h3><p>${s.desc}</p></div>
+        <div class="stage-status ${statusClass}">${statusText}</div>
+      </div>`;
+    }
+  }
+  html += `</div>`;
+
+  // Info panel
+  html += `<div style="margin-top:20px;background:var(--surface);border-radius:var(--radius);padding:16px;font-size:.82em;color:var(--text-dim);text-align:center;">
+    <p>💡 <b>提示：</b> 做定位测试找到你的起始级别，或者零基础直接从第1阶段开始！</p>
+    <p style="margin-top:4px;">🎤 推荐用 <b>Chrome</b> 或 <b>Edge</b> 浏览器，可以使用语音识别（会话中点 🎤 麦克风）</p>
+  </div>`;
+
+  main.innerHTML = html;
+}
+
+// ═══════════════════════════════════════
+//  PLACEMENT TEST
+// ═══════════════════════════════════════
+
+function startPlacement() {
+  const quiz = CONTENT[0].quiz;
+  currentView = 'placement';
+  renderNav();
+  const main = document.getElementById('main-content');
+  main.innerHTML = `
+    <div class="lesson-header">
+      <button class="back-btn" onclick="renderDashboard()">←</button>
+      <span class="lesson-title">${quiz.title}</span>
+    </div>
+    <div id="placement-container"></div>
+  `;
+  runQuiz(0, quiz, (score, totalWeight) => {
+    const pct = Math.round((score / totalWeight) * 100);
+    let assignedStage = 1;
+    if (pct >= 85) assignedStage = 8;
+    else if (pct >= 70) assignedStage = 7;
+    else if (pct >= 50) assignedStage = 5;
+    else if (pct >= 35) assignedStage = 4;
+    else if (pct >= 20) assignedStage = 3;
+    else if (pct >= 10) assignedStage = 2;
+
+    state.placementDone = true;
+    state.currentStage = assignedStage;
+    addXP(50);
+    saveState();
+
+    const main = document.getElementById('main-content');
+    main.innerHTML = `
+      <div class="quiz-card">
+        <span style="font-size:3em;display:block;margin-bottom:8px;">${pct >= 50 ? '🎉' : '💪'}</span>
+        <h2>评估完成！</h2>
+        <p style="font-size:1.2em;margin:12px 0;">你的得分 <b>${pct}%</b></p>
+        <p>建议起始级别：<b style="color:var(--primary-glow);font-size:1.1em;">第${assignedStage}阶段：${STAGES[assignedStage].name}</b></p>
+        <p style="color:var(--text-dim);font-size:.85em;margin-top:8px;">随时可回到前面的阶段复习。</p>
+        <button class="btn btn-primary" style="margin-top:16px;" onclick="renderDashboard()">出发！🚀</button>
+      </div>
+    `;
+  });
+}
+
+// ═══════════════════════════════════════
+//  STAGE VIEW
+// ═══════════════════════════════════════
+
+function openStage(stageId) {
+  currentView = 'stage';
+  const stage = STAGES[stageId];
+  const content = CONTENT[stageId];
+  const prog = state.stageProgress[stageId] || { lessonsDone: [], quizPassed: false, score: 0 };
+
+  renderNav();
+  const main = document.getElementById('main-content');
+  const totalLessons = content.lessons.length;
+  const doneCount = prog.lessonsDone.length;
+
+  let html = `
+    <div class="lesson-header">
+      <button class="back-btn" onclick="renderDashboard()">←</button>
+      <span class="lesson-title">${stage.icon} 第${stageId}阶段：${stage.name}</span>
+      <span class="lesson-progress">${doneCount}/${totalLessons + 1} 已完成</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+  `;
+
+  // Lesson list
+  content.lessons.forEach((l, i) => {
+    const done = prog.lessonsDone.includes(i);
+    const icon = l.type === 'flashcards' ? '🃏' : '💬';
+    html += `<div class="stage-card" style="cursor:pointer;${done?'border-color:var(--success)':''}" onclick="openLesson(${stageId}, ${i})">
+      <div class="stage-icon" style="background:${stage.color}22;color:${stage.color};font-size:1.3em;">${icon}</div>
+      <div class="stage-info"><h3>${l.title}</h3><p>${l.type === 'flashcards' ? '卡片学习' : '对话练习'}</p></div>
+      <div class="stage-status ${done?'done-badge':'current-badge'}">${done ? '✓' : '▶'}</div>
+    </div>`;
+  });
+
+  // Quiz
+  const quizDone = prog.quizPassed;
+  html += `<div class="stage-card" style="cursor:pointer;${quizDone?'border-color:var(--success)':''}" onclick="openQuiz(${stageId})">
+    <div class="stage-icon" style="background:${stage.color}22;color:${stage.color};font-size:1.3em;">📝</div>
+    <div class="stage-info"><h3>${content.quiz.title}</h3><p>通过分数：${content.quiz.passScore}%${prog.score ? ` | 最佳：${prog.score}%` : ''}</p></div>
+    <div class="stage-status ${quizDone?'done-badge':'current-badge'}">${quizDone ? `✓ ${prog.score}%` : '▶'}</div>
+  </div>`;
+
+  html += `</div>`;
+  main.innerHTML = html;
+}
+
+// ═══════════════════════════════════════
+//  LESSON: FLASHCARDS
+// ═══════════════════════════════════════
+
+let flashcardState = { items: [], index: 0, flipped: false };
+
+function openLesson(stageId, lessonIdx) {
+  const lesson = CONTENT[stageId].lessons[lessonIdx];
+  if (lesson.type === 'flashcards') {
+    openFlashcards(stageId, lessonIdx, lesson);
+  } else if (lesson.type === 'conversation') {
+    openConversation(stageId, lessonIdx, lesson);
+  }
+}
+
+function openFlashcards(stageId, lessonIdx, lesson) {
+  flashcardState = { items: lesson.items, index: 0, flipped: false };
+  const main = document.getElementById('main-content');
+  main.innerHTML = `
+    <div class="lesson-header">
+      <button class="back-btn" onclick="openStage(${stageId})">←</button>
+      <span class="lesson-title">${lesson.title}</span>
+      <span class="lesson-progress" id="fc-progress">1/${lesson.items.length}</span>
+    </div>
+    <div style="text-align:center;margin-bottom:12px;color:var(--text-dim);font-size:.82em;">🖱️ Click the card to flip</div>
+    <div class="flashcard" id="flashcard" onclick="flipCard()">
+      <div><span class="emoji">${lesson.items[0].front}</span></div>
+      <div id="fc-word" style="margin-top:8px;display:none;">${lesson.items[0].back}</div>
+    </div>
+    <div class="flashcard-nav">
+      <button class="btn" style="background:var(--surface2);" id="fc-prev" onclick="fcNav(-1)">◀ Prev</button>
+      <button class="btn btn-primary" onclick="speakWord('${lesson.items[0].word}')">🔊 Listen</button>
+      <button class="btn" style="background:var(--surface2);" id="fc-next" onclick="fcNav(1)">Next ▶</button>
+    </div>
+    <div style="text-align:center;margin-top:12px;">
+      <button class="btn btn-accent" onclick="markLessonDone(${stageId}, ${lessonIdx})">✓ I've Learned These</button>
+    </div>
+  `;
+  updateFcButtons();
+}
+
+function flipCard() {
+  const fc = document.getElementById('flashcard');
+  const wordDiv = document.getElementById('fc-word');
+  flashcardState.flipped = !flashcardState.flipped;
+  if (flashcardState.flipped) {
+    fc.classList.add('flipped');
+    wordDiv.style.display = 'block';
+  } else {
+    fc.classList.remove('flipped');
+    wordDiv.style.display = 'none';
+  }
+}
+
+function fcNav(dir) {
+  flashcardState.index += dir;
+  if (flashcardState.index < 0) flashcardState.index = 0;
+  if (flashcardState.index >= flashcardState.items.length) flashcardState.index = flashcardState.items.length - 1;
+  flashcardState.flipped = false;
+  const item = flashcardState.items[flashcardState.index];
+  const fc = document.getElementById('flashcard');
+  fc.classList.remove('flipped');
+  fc.querySelector('.emoji').textContent = item.front;
+  document.getElementById('fc-word').textContent = item.back;
+  document.getElementById('fc-word').style.display = 'none';
+  document.getElementById('fc-progress').textContent = `${flashcardState.index + 1}/${flashcardState.items.length}`;
+  document.querySelector('.btn-primary').setAttribute('onclick', `speakWord('${item.word}')`);
+  updateFcButtons();
+}
+
+function updateFcButtons() {
+  const prevBtn = document.getElementById('fc-prev');
+  const nextBtn = document.getElementById('fc-next');
+  if (prevBtn) prevBtn.style.visibility = flashcardState.index === 0 ? 'hidden' : 'visible';
+  if (nextBtn) nextBtn.style.visibility = flashcardState.index >= flashcardState.items.length - 1 ? 'hidden' : 'visible';
+}
+
+function markLessonDone(stageId, lessonIdx) {
+  if (!state.stageProgress[stageId]) state.stageProgress[stageId] = { lessonsDone: [], quizPassed: false, score: 0 };
+  const prog = state.stageProgress[stageId];
+  if (!prog.lessonsDone.includes(lessonIdx)) {
+    prog.lessonsDone.push(lessonIdx);
+    // Add vocabulary
+    const lesson = CONTENT[stageId].lessons[lessonIdx];
+    if (lesson.items) {
+      lesson.items.forEach(item => {
+        if (!state.vocabulary.find(v => v.word === item.word)) {
+          state.vocabulary.push({ word: item.word, trans: item.back, stage: stageId, ease: 2.5, nextReview: null, reviews: 0 });
+        }
+      });
+    }
+    addXP(15);
+  }
+  saveState();
+  showToast('✅ Lesson completed! +15 XP');
+  openStage(stageId);
+}
+
+// ═══════════════════════════════════════
+//  LESSON: CONVERSATION
+// ═══════════════════════════════════════
+
+let convState = { stageId: 0, lessonIdx: 0, messages: [], currentMsgIdx: 0, conversationEnded: false };
+
+function openConversation(stageId, lessonIdx, lesson) {
+  convState = {
+    stageId, lessonIdx,
+    messages: [...lesson.messages],
+    currentMsgIdx: 0,
+    conversationEnded: false
+  };
+  const main = document.getElementById('main-content');
+  main.innerHTML = `
+    <div class="lesson-header">
+      <button class="back-btn" onclick="openStage(${stageId})">←</button>
+      <span class="lesson-title">💬 ${lesson.title}</span>
+      <span class="lesson-progress">with ${lesson.teacherName}</span>
+    </div>
+    <div class="chat-area" id="chat-area"></div>
+    <div class="chat-input-wrap">
+      <input class="chat-input" id="chat-input" placeholder="Type your response..." onkeydown="if(event.key==='Enter')sendMessage()">
+      <button class="btn-mic" id="mic-btn" onclick="toggleMic()" title="Hold to speak">🎤</button>
+      <button class="btn btn-primary" onclick="sendMessage()">Send</button>
+    </div>
+  `;
+  // Show first teacher message
+  setTimeout(() => showNextTeacherMessage(), 500);
+}
+
+function showNextTeacherMessage() {
+  if (convState.currentMsgIdx >= convState.messages.length) {
+    endConversation();
+    return;
+  }
+  const msg = convState.messages[convState.currentMsgIdx];
+  if (msg.role === 'teacher') {
+    addChatMessage('teacher', msg.text);
+    speakText(msg.text);
+    convState.currentMsgIdx++;
+  }
+}
+
+function sendMessage() {
+  if (convState.conversationEnded) return;
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+
+  addChatMessage('student', text);
+  input.value = '';
+
+  // Provide feedback based on level
+  const stageId = convState.stageId;
+  const feedback = analyzeResponse(text, stageId);
+  if (feedback.correction) {
+    addChatMessage('correction', `💡 ${feedback.correction}`);
+  }
+  if (feedback.praise) {
+    addChatMessage('praise', feedback.praise);
+  }
+
+  // Show next teacher message after a delay
+  setTimeout(() => {
+    if (convState.currentMsgIdx < convState.messages.length) {
+      showNextTeacherMessage();
+    } else {
+      endConversation();
+    }
+  }, 1200);
+}
+
+function analyzeResponse(text, stageId) {
+  const result = { correction: null, praise: null };
+  const lower = text.toLowerCase();
+
+  // Simple grammar checks based on stage
+  if (stageId <= 3) {
+    // Early stages: just encourage
+    if (lower.length > 2) {
+      result.praise = '🌟 Good try! Keep practicing!';
+    }
+  }
+
+  if (stageId >= 4) {
+    // Check for common errors
+    if (/\bi (is|are)\b/.test(lower)) {
+      result.correction = 'Remember: "I am" (not "I is" or "I are"). Try: "I am..."';
+    }
+    if (/\bhe (am|are)\b/.test(lower)) {
+      result.correction = 'With "he/she/it", use "is": "He is..." (not "He am/are")';
+    }
+    if (/\bshe (am|are)\b/.test(lower)) {
+      result.correction = 'With "she", use "is": "She is..." (not "She am/are")';
+    }
+    if (/\bthey (is|am)\b/.test(lower)) {
+      result.correction = 'With "they", use "are": "They are..." (not "They is")';
+    }
+    if (/\bi goes\b/.test(lower)) {
+      result.correction = '"Go" for "I": "I go" (not "I goes"). Only "he/she/it goes"';
+    }
+  }
+
+  // Always give some encouragement
+  if (!result.praise && lower.length > 3) {
+    const praises = ['👍 好！', '✨ 不错！', '👏 做得好！', '💪 继续！', '🌟 很努力！'];
+    result.praise = praises[Math.floor(Math.random() * praises.length)];
+  }
+
+  return result;
+}
+
+function addChatMessage(role, text) {
+  const area = document.getElementById('chat-area');
+  if (!area) return;
+  const div = document.createElement('div');
+  div.className = `chat-msg ${role}`;
+  div.textContent = text;
+  area.appendChild(div);
+  area.scrollTop = area.scrollHeight;
+}
+
+function endConversation() {
+  convState.conversationEnded = true;
+  addChatMessage('praise', '🎉 对话很棒！你完成了这次练习。');
+  addXP(20);
+  markLessonDone(convState.stageId, convState.lessonIdx);
+  setTimeout(() => {
+    const btn = document.querySelector('.btn-primary');
+    if (btn) { btn.textContent = 'Done ✓'; btn.onclick = () => openStage(convState.stageId); }
+  }, 1000);
+}
+
+// ═══════════════════════════════════════
+//  QUIZ SYSTEM
+// ═══════════════════════════════════════
+
+function openQuiz(stageId) {
+  const quiz = CONTENT[stageId].quiz;
+  const main = document.getElementById('main-content');
+  main.innerHTML = `
+    <div class="lesson-header">
+      <button class="back-btn" onclick="openStage(${stageId})">←</button>
+      <span class="lesson-title">📝 ${quiz.title}</span>
+      <span class="lesson-progress">Pass: ${quiz.passScore}%</span>
+    </div>
+    <div id="quiz-container"></div>
+  `;
+  runQuiz(stageId, quiz, (score, total) => {
+    const pct = Math.round((score / total) * 100);
+    const passed = pct >= quiz.passScore;
+
+    if (!state.stageProgress[stageId]) state.stageProgress[stageId] = { lessonsDone: [], quizPassed: false, score: 0 };
+    const prog = state.stageProgress[stageId];
+    prog.score = Math.max(prog.score, pct);
+
+    if (passed) {
+      prog.quizPassed = true;
+      addXP(30);
+      // Unlock next stage
+      if (stageId < 8) {
+        state.currentStage = Math.max(state.currentStage, stageId + 1);
+      }
+    }
+    saveState();
+    checkBadges();
+
+    const main = document.getElementById('main-content');
+    main.innerHTML = `
+      <div class="quiz-card">
+        <span style="font-size:3em;display:block;">${passed ? '🎉' : '😔'}</span>
+        <h2>${passed ? '恭喜通关！' : '继续加油！'}</h2>
+        <p style="font-size:1.3em;margin:12px 0;">得分：<b style="color:${passed?'var(--success)':'var(--danger)'}">${pct}%</b></p>
+        <p>${passed
+          ? `第${stageId}阶段完成！ ${stageId < 8 ? '第' + (stageId+1) + '阶段已解锁！' : '你已掌握所有阶段！'}`
+          : `你需要 ${quiz.passScore}% 才能通过。复习课程后再试！`}</p>
+        ${passed ? `<p style="color:var(--gold);margin-top:8px;">+30 经验到手！</p>` : ''}
+        <div style="margin-top:16px;display:flex;gap:10px;justify-content:center;">
+          ${!passed ? `<button class="btn btn-primary" onclick="openQuiz(${stageId})">Retry Quiz 🔄</button>` : ''}
+          <button class="btn btn-accent" onclick="openStage(${stageId})">Back to Stage</button>
+        </div>
+      </div>
+    `;
+  });
+}
+
+function runQuiz(stageId, quiz, onComplete) {
+  let qIdx = 0;
+  let score = 0;
+  let totalWeight = 0;
+  const questions = quiz.questions;
+  const container = document.getElementById(stageId === 0 ? 'placement-container' : 'quiz-container');
+  if (!container) return;
+
+  function showQuestion() {
+    if (qIdx >= questions.length) {
+      onComplete(score, totalWeight || questions.length);
+      return;
+    }
+    const q = questions[qIdx];
+    container.innerHTML = `
+      <div class="quiz-card">
+        <div style="color:var(--text-dim);font-size:.8em;margin-bottom:8px;">Question ${qIdx + 1} / ${questions.length}</div>
+        <div class="quiz-question">${q.q}</div>
+        <div class="quiz-options">
+          ${q.opts.map((o, i) => `
+            <div class="quiz-option" onclick="selectAnswer(${stageId}, ${qIdx}, ${i}, this, ${JSON.stringify(q.weight||null)})">${o}</div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  window.selectAnswer = function(sid, qi, ai, el, weights) {
+    const q = questions[qi];
+    document.querySelectorAll('.quiz-option').forEach(o => o.style.pointerEvents = 'none');
+    if (ai === q.ans) {
+      el.classList.add('correct');
+      if (weights) {
+        score += (weights.length - weights[ai]);
+        totalWeight += (weights.length - 1);
+      } else {
+        score++;
+      }
+    } else {
+      el.classList.add('wrong');
+      document.querySelectorAll('.quiz-option')[q.ans].classList.add('correct');
+      if (weights) totalWeight += (weights.length - 1);
+    }
+    qIdx++;
+    setTimeout(showQuestion, 1200);
+  };
+
+  showQuestion();
+}
+
+// ═══════════════════════════════════════
+//  REVIEW SYSTEM (Spaced Repetition)
+// ═══════════════════════════════════════
+
+function getDueReviews() {
+  return state.vocabulary.filter(v => !v.nextReview || new Date(v.nextReview) <= new Date());
+}
+
+function renderReview() {
+  currentView = 'review';
+  renderNav();
+  const main = document.getElementById('main-content');
+  const due = getDueReviews();
+
+  if (due.length === 0) {
+    main.innerHTML = `
+      <div style="text-align:center;padding:60px 20px;">
+        <span style="font-size:3em;display:block;">🎉</span>
+        <h2>All caught up!</h2>
+        <p style="color:var(--text-dim);margin-top:8px;">Complete more lessons to add words for review.</p>
+        <p style="color:var(--text-dim);">Total words learned: <b style="color:var(--primary-glow)">${state.vocabulary.length}</b></p>
+        <button class="btn btn-primary" style="margin-top:16px;" onclick="renderDashboard()">Learn More →</button>
+      </div>
+    `;
+    return;
+  }
+
+  let rIdx = 0;
+  const word = due[rIdx];
+
+  function showCard() {
+    if (rIdx >= due.length) {
+      saveState();
+      renderReview();
+      return;
+    }
+    const w = due[rIdx];
+    main.innerHTML = `
+      <div style="text-align:center;margin-bottom:16px;color:var(--text-dim);">Review ${rIdx + 1} / ${due.length}</div>
+      <div class="review-card">
+        <div class="review-word" id="review-word">${w.word}</div>
+        <div class="review-answer" id="review-answer" style="display:none;">${w.trans}</div>
+        <button class="btn" style="background:var(--surface2);margin-top:8px;" onclick="document.getElementById('review-answer').style.display='block';this.style.display='none';speakWord('${w.word}')">Show Answer / 🔊</button>
+        <div class="review-btns" style="margin-top:12px;">
+          <button class="review-btn again" onclick="reviewCard(${rIdx}, 'again')">Again 😰</button>
+          <button class="review-btn hard" onclick="reviewCard(${rIdx}, 'hard')">Hard 🤔</button>
+          <button class="review-btn good" onclick="reviewCard(${rIdx}, 'good')">Good 😊</button>
+          <button class="review-btn easy" onclick="reviewCard(${rIdx}, 'easy')">Easy 🚀</button>
+        </div>
+      </div>
+    `;
+  }
+
+  window.reviewCard = function(idx, rating) {
+    const w = due[idx];
+    const intervals = { again: 1, hard: 3, good: 7, easy: 14 };
+    const easeAdjust = { again: -0.3, hard: -0.1, good: 0.1, easy: 0.3 };
+    w.ease = Math.max(1.3, (w.ease || 2.5) + easeAdjust[rating]);
+    w.reviews = (w.reviews || 0) + 1;
+    const days = Math.round(intervals[rating] * w.ease);
+    w.nextReview = new Date(Date.now() + days * 86400000).toISOString();
+    if (rating === 'easy') addXP(3);
+    if (rating === 'good') addXP(1);
+    rIdx++;
+    showCard();
+  };
+
+  showCard();
+}
+
+// ═══════════════════════════════════════
+//  BADGES VIEW
+// ═══════════════════════════════════════
+
+function renderBadges() {
+  currentView = 'badges-view';
+  renderNav();
+  const main = document.getElementById('main-content');
+  const allBadges = [
+    { id:'first_lesson', name:'迈出第一步', icon:'👶', desc:'完成你的第一节课' },
+    { id:'streak3', name:'连续3天', icon:'🔥', desc:'连续学习3天' },
+    { id:'streak7', name:'周勇士', icon:'💪', desc:'连续学习7天' },
+    { id:'level5', name:'冉冉新星', icon:'⭐', desc:'达到等级5' },
+    { id:'level10', name:'学者', icon:'🎓', desc:'达到等级10' },
+    { id:'stage3', name:'短语大师', icon:'💬', desc:'通过第4阶段测验' },
+    { id:'stage5', name:'探索者', icon:'🌍', desc:'通过第7阶段测验' },
+    { id:'stage8', name:'流利说', icon:'🏆', desc:'完成所有阶段' },
+    { id:'vocab50', name:'单词收集者', icon:'📖', desc:'学习50个单词' },
+    { id:'perfect', name:'满分达人', icon:'💯', desc:'测验获得满分' },
+  ];
+
+  main.innerHTML = `<h2 style="margin-bottom:16px;">🏅 Badges (${state.badges.length}/${allBadges.length})</h2>
+    <div style="display:grid;gap:10px;">
+      ${allBadges.map(b => {
+        const unlocked = state.badges.includes(b.id);
+        return `<div class="stage-card" style="cursor:default;${unlocked?'border-color:var(--gold);':''}">
+          <div class="stage-icon" style="font-size:2em;${!unlocked?'filter:grayscale(1);opacity:.3;':''}">${b.icon}</div>
+          <div class="stage-info"><h3>${b.name}</h3><p>${b.desc}</p></div>
+          <div class="stage-status ${unlocked?'done-badge':'locked-badge'}">${unlocked?'✓ 已解锁':'🔒'}</div>
+        </div>`;
+      }).join('')}
+    </div>
+    <button class="btn btn-primary" style="margin-top:16px;display:block;margin-left:auto;margin-right:auto;" onclick="renderDashboard()">Back to Learning</button>
+  `;
+}
+
+// ═══════════════════════════════════════
+//  SPEECH SYSTEM
+// ═══════════════════════════════════════
+
+let recognition = null;
+let isListening = false;
+
+function initSpeech() {
+  if (recognition) return true;
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) return false;
+  recognition = new SpeechRecognition();
+  recognition.lang = 'en-US';
+  recognition.interimResults = false;
+  recognition.continuous = false;
+  recognition.onresult = (event) => {
+    const text = event.results[0][0].transcript;
+    const input = document.getElementById('chat-input');
+    if (input) {
+      input.value = text;
+      input.focus();
+    }
+    stopListening();
+    // Auto-send if in conversation
+    if (currentView === 'stage' && document.getElementById('chat-area')) {
+      setTimeout(() => sendMessage(), 300);
+    }
+  };
+  recognition.onerror = () => stopListening();
+  recognition.onend = () => stopListening();
+  return true;
+}
+
+function toggleMic() {
+  if (isListening) {
+    stopListening();
+    return;
+  }
+  if (!initSpeech()) {
+    showToast('⚠️ Voice not supported. Use Chrome/Edge.');
+    return;
+  }
+  isListening = true;
+  const btn = document.getElementById('mic-btn');
+  if (btn) btn.classList.add('listening');
+  showToast('🎤 Listening... Speak now!');
+  recognition.start();
+}
+
+function stopListening() {
+  isListening = false;
+  const btn = document.getElementById('mic-btn');
+  if (btn) btn.classList.remove('listening');
+  try { recognition?.stop(); } catch(e) {}
+}
+
+function speakText(text) {
+  if (!window.speechSynthesis) return;
+  // Clean text for speech
+  const cleanText = text.replace(/[🎉👏💪✨🌟👍💡🎤]/g, '').trim();
+  const utterance = new SpeechSynthesisUtterance(cleanText);
+  utterance.lang = 'en-US';
+  utterance.rate = state.settings.speechRate;
+  utterance.pitch = 1;
+  // Try to find a good English voice
+  const voices = speechSynthesis.getVoices();
+  const enVoice = voices.find(v => v.lang.startsWith('en') && v.name.includes('Female'))
+    || voices.find(v => v.lang.startsWith('en-US'))
+    || voices.find(v => v.lang.startsWith('en'));
+  if (enVoice) utterance.voice = enVoice;
+  speechSynthesis.speak(utterance);
+}
+
+function speakWord(word) {
+  if (!window.speechSynthesis) return;
+  const utterance = new SpeechSynthesisUtterance(word);
+  utterance.lang = 'en-US';
+  utterance.rate = 0.8;
+  const voices = speechSynthesis.getVoices();
+  const enVoice = voices.find(v => v.lang.startsWith('en-US'));
+  if (enVoice) utterance.voice = enVoice;
+  speechSynthesis.speak(utterance);
+}
+
+// Pre-load voices
+if (window.speechSynthesis) {
+  speechSynthesis.getVoices();
+  speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices();
+}
+
+// ═══════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════
+
+updateHeader();
+renderDashboard();
+</script>
+
+</body>
+</html>
