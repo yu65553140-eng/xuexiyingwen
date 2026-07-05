@@ -1633,62 +1633,44 @@ function stopListening() {
 
 function speakText(text) {
   if (!window.speechSynthesis) {
-    showToast('⚠️ 你的浏览器不支持发音功能，请用Chrome或Edge');
+    showToast('⚠️ 你的浏览器不支持发音，请用Chrome或Edge');
     return;
   }
   const cleanText = text.replace(/[🎉👏💪✨🌟👍💡🎤🔥]/g, '').trim();
   if (!cleanText) return;
-  // Chrome TTS bug workaround: cancel + small delay before speak
+  const u = new SpeechSynthesisUtterance(cleanText);
+  u.lang = 'en-US';
+  u.rate = state.settings.speechRate || 0.9;
+  u.volume = 1;
+  u.onerror = () => {}; // suppress errors
   speechSynthesis.cancel();
-  speechSynthesis.resume();
-  setTimeout(() => {
-    const utterance = new SpeechSynthesisUtterance(cleanText);
-    utterance.lang = 'en-US';
-    utterance.rate = state.settings.speechRate || 0.9;
-    utterance.pitch = 1;
-    utterance.volume = 1;
-    const voices = speechSynthesis.getVoices();
-    const enVoice = voices.find(v => v.lang.startsWith('en-US') && v.name.includes('Female'))
-      || voices.find(v => v.lang.startsWith('en-US'))
-      || voices.find(v => v.lang.startsWith('en'));
-    if (enVoice) utterance.voice = enVoice;
-    speechSynthesis.speak(utterance);
-  }, 80);
+  setTimeout(() => speechSynthesis.speak(u), 150);
 }
 
 function speakWord(word) {
   if (!window.speechSynthesis) return;
-  // Chrome TTS bug workaround
+  const u = new SpeechSynthesisUtterance(word);
+  u.lang = 'en-US';
+  u.rate = 0.8;
+  u.volume = 1;
+  u.onerror = () => {};
   speechSynthesis.cancel();
-  speechSynthesis.resume();
-  setTimeout(() => {
-    const utterance = new SpeechSynthesisUtterance(word);
-    utterance.lang = 'en-US';
-    utterance.rate = 0.8;
-    utterance.volume = 1;
-    const voices = speechSynthesis.getVoices();
-    const enVoice = voices.find(v => v.lang.startsWith('en-US'));
-    if (enVoice) utterance.voice = enVoice;
-    speechSynthesis.speak(utterance);
-  }, 80);
+  setTimeout(() => speechSynthesis.speak(u), 150);
 }
 
-// Pre-load voices + Chrome TTS warmup on first click
+// Chrome TTS: aggressive warmup on first interaction
 if (window.speechSynthesis) {
-  speechSynthesis.getVoices();
-  speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices();
-  // Chrome needs a user gesture to unlock TTS
-  let ttsUnlocked = false;
-  document.addEventListener('click', () => {
-    if (!ttsUnlocked && window.speechSynthesis) {
-      speechSynthesis.cancel();
-      speechSynthesis.resume();
-      const u = new SpeechSynthesisUtterance('');
-      u.volume = 0;
-      speechSynthesis.speak(u);
-      ttsUnlocked = true;
-    }
-  }, {once: false});
+  let _warmed = false;
+  const warmup = () => {
+    if (_warmed) return;
+    _warmed = true;
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance('hello');
+    u.volume = 0;
+    speechSynthesis.speak(u);
+  };
+  document.addEventListener('click', warmup, {once: true});
+  document.addEventListener('touchstart', warmup, {once: true});
 }
 
 // ═══════════════════════════════════════
